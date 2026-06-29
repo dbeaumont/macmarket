@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/macmarket}
+    username: ${DB_USERNAME:macmarket}
+    password: ${DB_PASSWORD:macmarket_secret}
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/macmarket
+
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+
+  mail:
+    host: localhost
+    port: 1025

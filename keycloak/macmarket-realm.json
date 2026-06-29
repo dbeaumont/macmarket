@@ -1,0 +1,138 @@
+{
+  "realm": "macmarket",
+  "enabled": true,
+  "registrationAllowed": true,
+  "registrationEmailAsUsername": true,
+  "rememberMe": true,
+  "loginWithEmailAllowed": true,
+  "defaultRoles": ["CUSTOMER"],
+  "roles": {
+    "realm": [
+      {
+        "name": "CUSTOMER",
+        "description": "Client de la boutique"
+      },
+      {
+        "name": "MANAGER",
+        "description": "Gestionnaire backoffice"
+      },
+      {
+        "name": "ADMIN",
+        "description": "Administrateur",
+        "composite": true,
+        "composites": {
+          "realm": ["MANAGER"]
+        }
+      }
+    ]
+  },
+  "defaultDefaultClientScopes": ["web-origins", "acr", "profile", "roles", "email"],
+  "clients": [
+    {
+      "clientId": "macmarket-shop",
+      "name": "MacMarket Boutique",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:5173/*",
+        "http://localhost:3000/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5173",
+        "http://localhost:3000"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:5173/*##http://localhost:3000/*"
+      }
+    },
+    {
+      "clientId": "macmarket-admin",
+      "name": "MacMarket Backoffice",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "http://localhost:5174/*",
+        "http://localhost:3001/*"
+      ],
+      "webOrigins": [
+        "http://localhost:5174",
+        "http://localhost:3001"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:5174/*##http://localhost:3001/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "client@macmarket.com",
+      "email": "client@macmarket.com",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Jean",
+      "lastName": "Dupont",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["CUSTOMER"]
+    },
+    {
+      "username": "client2@macmarket.com",
+      "email": "client2@macmarket.com",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Marie",
+      "lastName": "Martin",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["CUSTOMER"]
+    },
+    {
+      "username": "manager@macmarket.com",
+      "email": "manager@macmarket.com",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Pierre",
+      "lastName": "Gestionnaire",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["MANAGER"]
+    },
+    {
+      "username": "admin@macmarket.com",
+      "email": "admin@macmarket.com",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "Admin",
+      "lastName": "MacMarket",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["ADMIN"]
+    }
+  ]
+}

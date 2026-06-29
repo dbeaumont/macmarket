@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/macmarket
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://keycloak:8180/realms/macmarket
+
+  ai:
+    ollama:
+      base-url: http://ollama:11434
+
+  mail:
+    host: mailpit
+    port: 1025

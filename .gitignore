@@ -1,0 +1,23 @@
+# === Environnement ===
+.env
+data/
+
+# === Java / Maven ===
+target/
+*.jar
+*.class
+*.log
+.mvn/wrapper/maven-wrapper.jar
+
+# === Node / Frontend ===
+node_modules/
+dist/
+.vite/
+
+# === IDE ===
+.idea/
+.vscode/
+*.iml
+*.swp
+*~
+.DS_Store

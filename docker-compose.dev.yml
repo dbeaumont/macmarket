@@ -1,0 +1,7 @@
+services:
+  backend:
+    profiles: ["full"]
+  frontend-shop:
+    profiles: ["full"]
+  frontend-admin:
+    profiles: ["full"]

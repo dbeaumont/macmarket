@@ -1,0 +1,105 @@
+package com.macmarket.catalog.presentation.rest;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import com.macmarket.catalog.application.command.CreateProductCommand;
+import com.macmarket.catalog.application.command.UpdateProductCommand;
+import com.macmarket.catalog.application.service.CatalogQueryService;
+import com.macmarket.catalog.application.service.CreateProductService;
+import com.macmarket.catalog.application.service.UpdateProductService;
+import com.macmarket.catalog.presentation.dto.*;
+
+import jakarta.validation.Valid;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+class CatalogController {
+
+    private final CatalogQueryService queryService;
+    private final CreateProductService createProductService;
+    private final UpdateProductService updateProductService;
+    private final ProductResponseMapper responseMapper;
+
+    CatalogController(CatalogQueryService queryService,
+                       CreateProductService createProductService,
+                       UpdateProductService updateProductService,
+                       ProductResponseMapper responseMapper) {
+        this.queryService = queryService;
+        this.createProductService = createProductService;
+        this.updateProductService = updateProductService;
+        this.responseMapper = responseMapper;
+    }
+
+    @GetMapping("/api/v1/products")
+    ResponseEntity<Map<String, Object>> listProducts(
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "12") int size,
+        @RequestParam(defaultValue = "createdAt,desc") String sort,
+        @RequestParam(required = false) String category,
+        @RequestParam(required = false) String search,
+        @RequestParam(required = false) BigDecimal minPrice,
+        @RequestParam(required = false) BigDecimal maxPrice
+    ) {
+        var result = queryService.findAll(true, category, minPrice, maxPrice, search, page, size, sort);
+        var content = result.content().stream().map(responseMapper::toResponse).toList();
+        return ResponseEntity.ok(Map.of(
+            "content", content,
+            "totalElements", result.totalElements(),
+            "totalPages", result.totalPages(),
+            "size", result.size(),
+            "number", result.number()
+        ));
+    }
+
+    @GetMapping("/api/v1/products/{slug}")
+    ResponseEntity<ProductResponse> getBySlug(@PathVariable String slug) {
+        var product = queryService.findBySlug(slug);
+        return ResponseEntity.ok(responseMapper.toResponse(product));
+    }
+
+    @GetMapping("/api/v1/categories")
+    ResponseEntity<List<CategoryCountResponse>> getCategories() {
+        var categories = queryService.getCategories().stream()
+            .map(c -> new CategoryCountResponse(c.category(), c.count()))
+            .toList();
+        return ResponseEntity.ok(categories);
+    }
+
+    @PostMapping("/api/v1/admin/products")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody CreateProductRequest request) {
+        var command = new CreateProductCommand(
+            request.name(), request.slug(), request.description(), request.shortDesc(),
+            request.price(), request.category(), request.imageUrl(),
+            request.stockQuantity(), request.specs()
+        );
+        var product = createProductService.execute(command);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseMapper.toResponse(product));
+    }
+
+    @PutMapping("/api/v1/admin/products/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    ResponseEntity<ProductResponse> updateProduct(@PathVariable UUID id, @Valid @RequestBody UpdateProductRequest request) {
+        var command = new UpdateProductCommand(
+            id, request.name(), request.description(), request.shortDesc(),
+            request.price(), request.category(), request.imageUrl(),
+            request.stockQuantity(), request.specs()
+        );
+        var product = updateProductService.execute(command);
+        return ResponseEntity.ok(responseMapper.toResponse(product));
+    }
+
+    @DeleteMapping("/api/v1/admin/products/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    ResponseEntity<Void> deleteProduct(@PathVariable UUID id) {
+        updateProductService.deactivate(id);
+        return ResponseEntity.noContent().build();
+    }
+}

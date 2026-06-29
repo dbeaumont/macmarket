@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <h1 style="color: #1d1d1f;">MacMarket</h1>
+  <h2 th:text="${success} ? 'Paiement confirme' : 'Echec du paiement'"></h2>
+  <p>Commande : <strong th:text="${orderId}"></strong></p>
+  <p th:if="${success}">Votre paiement de <strong th:text="${amount}"></strong> EUR a ete accepte.</p>
+  <p th:if="${!success}">Votre paiement a echoue : <em th:text="${reason}"></em></p>
+  <hr/>
+  <p style="color: #86868b; font-size: 12px;">Cet email a ete envoye automatiquement par MacMarket.</p>
+</body>
+</html>

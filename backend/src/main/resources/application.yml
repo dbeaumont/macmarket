@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: macmarket
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/macmarket}
+    username: ${DB_USERNAME:macmarket}
+    password: ${DB_PASSWORD:}
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/macmarket
+
+  ai:
+    ollama:
+      base-url: http://localhost:11434
+      chat:
+        model: mistral
+        options:
+          temperature: 0.7
+          num-predict: 1024
+
+  mail:
+    host: localhost
+    port: 1025
+    properties:
+      mail.smtp.auth: false
+      mail.smtp.starttls.enable: false
+
+  modulith:
+    events:
+      jdbc-schema-initialization:
+        enabled: false
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+macmarket:
+  assistant:
+    max-history: 20
