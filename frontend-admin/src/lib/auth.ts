@@ -2,14 +2,14 @@ import type { AuthProviderProps } from 'react-oidc-context';
 import type { User } from 'oidc-client-ts';
 
 const KEYCLOAK_URL = import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8180';
-const APP_URL = import.meta.env.VITE_APP_URL || 'http://localhost:5174';
+const APP_URL = import.meta.env.VITE_APP_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5174');
 
 export const oidcConfig: AuthProviderProps = {
   authority: `${KEYCLOAK_URL}/realms/macmarket`,
   client_id: 'macmarket-admin',
   redirect_uri: `${APP_URL}/auth/callback`,
   post_logout_redirect_uri: APP_URL,
-  scope: 'openid profile email',
+  scope: 'openid profile email roles',
   automaticSilentRenew: true,
   onSigninCallback: () => {
     window.history.replaceState({}, document.title, '/dashboard');

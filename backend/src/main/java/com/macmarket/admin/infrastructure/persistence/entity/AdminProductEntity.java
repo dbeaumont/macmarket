@@ -6,7 +6,7 @@ import java.util.UUID;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "products")
+@Table(name = "catalog_products")
 public class AdminProductEntity {
 
     @Id

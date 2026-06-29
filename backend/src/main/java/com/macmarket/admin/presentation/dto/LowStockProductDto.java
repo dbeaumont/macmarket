@@ -10,5 +10,5 @@ public record LowStockProductDto(
     BigDecimal price,
     int stockQuantity,
     int reservedQuantity,
-    int availableStock
+    int availableQuantity
 ) {}
