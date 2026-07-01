@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   useReactTable,
@@ -10,6 +11,7 @@ import { fetchCustomers } from '@/lib/api';
 import type { CustomerSummary } from '@/lib/api';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Eye } from 'lucide-react';
 
 function formatCurrency(value: number): string {
   return value.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
@@ -36,6 +38,17 @@ const columns = [
   columnHelper.accessor('lastOrderDate', {
     header: 'Derniere commande',
     cell: (info) => formatDate(info.getValue()),
+  }),
+  columnHelper.display({
+    id: 'actions',
+    header: 'Actions',
+    cell: (info) => (
+      <Link to={`/customers/${info.row.original.userId}`}>
+        <Button variant="ghost" size="icon-xs">
+          <Eye className="h-3 w-3" />
+        </Button>
+      </Link>
+    ),
   }),
 ];
 

@@ -14,6 +14,7 @@ import { ProductFormPage } from '@/pages/ProductFormPage';
 import { OrdersPage } from '@/pages/OrdersPage';
 import { OrderDetailPage } from '@/pages/OrderDetailPage';
 import { CustomersPage } from '@/pages/CustomersPage';
+import { CustomerDetailPage } from '@/pages/CustomerDetailPage';
 import { StatsOverviewPage } from '@/pages/StatsOverviewPage';
 import { RevenueStatsPage } from '@/pages/RevenueStatsPage';
 import { ProductStatsPage } from '@/pages/ProductStatsPage';
@@ -62,6 +63,7 @@ export default function App() {
             <Route path="/orders" element={<AdminPage><OrdersPage /></AdminPage>} />
             <Route path="/orders/:id" element={<AdminPage><OrderDetailPage /></AdminPage>} />
             <Route path="/customers" element={<AdminPage><CustomersPage /></AdminPage>} />
+            <Route path="/customers/:userId" element={<AdminPage><CustomerDetailPage /></AdminPage>} />
 
             <Route path="/stats" element={<AdminPage requiredRole="ADMIN"><StatsOverviewPage /></AdminPage>} />
             <Route path="/stats/revenue" element={<AdminPage requiredRole="ADMIN"><RevenueStatsPage /></AdminPage>} />

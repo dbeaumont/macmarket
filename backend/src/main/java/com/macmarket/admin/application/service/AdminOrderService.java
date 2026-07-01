@@ -80,8 +80,8 @@ public class AdminOrderService {
     private AdminOrderResponse toOrderResponse(AdminOrderEntity entity) {
         return new AdminOrderResponse(
             entity.getId(), entity.getUserId(), entity.getStatus(), entity.getTotal(),
-            entity.getItems().size(), entity.getShippingName(), entity.getShippingEmail(),
-            entity.getCreatedAt(), entity.getUpdatedAt()
+            entity.getItems().size(), entity.getShippingName(), entity.getShippingAddress(),
+            entity.getShippingEmail(), entity.getCreatedAt(), entity.getUpdatedAt()
         );
     }
 

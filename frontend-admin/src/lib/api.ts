@@ -88,6 +88,9 @@ export interface AdminOrder {
   readonly status: string;
   readonly total: number;
   readonly itemCount: number;
+  readonly shippingName: string;
+  readonly shippingAddress: string;
+  readonly shippingEmail: string;
   readonly createdAt: string;
 }
 
@@ -102,9 +105,6 @@ export interface OrderItem {
 
 export interface AdminOrderDetail extends AdminOrder {
   readonly items: readonly OrderItem[];
-  readonly shippingName: string;
-  readonly shippingAddress: string;
-  readonly shippingEmail: string;
 }
 
 export interface CustomerSummary {

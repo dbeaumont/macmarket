@@ -11,6 +11,7 @@ public record AdminOrderResponse(
     BigDecimal total,
     int itemCount,
     String shippingName,
+    String shippingAddress,
     String shippingEmail,
     Instant createdAt,
     Instant updatedAt
