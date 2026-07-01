@@ -1,4 +1,4 @@
-package com.macmarket.catalog.domain.model;
+package com.macmarket;
 
 public class DomainException extends RuntimeException {
     public DomainException(String message) {

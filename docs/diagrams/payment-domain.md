@@ -2,68 +2,86 @@
 
 ## Vue synthétique DDD + Modulith
 
-Ce diagramme présente le bounded context Payment comme un module centré sur un agrégat de paiement, avec une frontière claire entre logique métier, orchestration applicative et intégration technique.
+Le bounded context Payment traite automatiquement le paiement d'une commande. Dès qu'un `OrderPlacedEvent` est reçu, le module initie et simule le paiement (cf. ADR-0007 — pas de passerelle réelle), puis publie le résultat via `PaymentCompletedEvent` ou `PaymentFailedEvent`. Ces événements déclenchent en retour la mise à jour du statut de la commande et l'envoi de notifications.
 
 ```mermaid
 flowchart TB
-    subgraph Presentation["Presentation / API"]
-        Controller["PaymentController"]
-        Request["InitiatePaymentRequest"]
-        Response["PaymentResponse"]
+    subgraph EXT["Modules externes"]
+        OE(["order:\nOrderPlacedEvent"])
     end
 
-    subgraph Application["Application"]
-        Service["PaymentApplicationService"]
-        Command["ProcessPaymentCommand"]
+    subgraph PM["Module payment — @ApplicationModule(OPEN)\nallowedDependencies: order"]
+        subgraph Presentation["Presentation / API"]
+            Controller["PaymentController"]
+            DTOs["PaymentResponse · PaymentResponseMapper"]
+        end
+
+        subgraph Application["Application"]
+            ProcessSvc["ProcessPaymentService\n[@Transactional — paiement simulé]"]
+            QuerySvc["PaymentQueryService"]
+        end
+
+        subgraph Domain["Domain"]
+            Aggregate["Payment\n[Aggregate Root]\ninitiate · complete · fail · reconstitute"]
+            VOs["PaymentId · OrderReference\n[Value Objects]"]
+            Status["PaymentStatus\n[Enum : PENDING · COMPLETED · FAILED]"]
+            DomEvents["PaymentCompletedEvent · PaymentFailedEvent\n[Domain Events]"]
+            Port["PaymentRepository\n[port sortant]"]
+        end
+
+        subgraph Infrastructure["Infrastructure"]
+            RepoImpl["PaymentJpaRepository\n[mapping inline, sans mapper dédié]"]
+            JpaE["PaymentJpaEntity"]
+            OrderL["OrderEventListener\n[@ApplicationModuleListener]"]
+        end
     end
 
-    subgraph Domain["Domain"]
-        Aggregate["Payment\n(Aggregate Root)"]
-        VO1["PaymentId"]
-        VO2["OrderReference"]
-        Status["PaymentStatus"]
-        Port["PaymentRepository\n(port sortant)"]
-        Event["PaymentCompletedEvent"]
-    end
+    Controller --> ProcessSvc
+    Controller --> QuerySvc
+    ProcessSvc --> Aggregate
+    ProcessSvc --> Port
+    QuerySvc --> Port
 
-    subgraph Infrastructure["Infrastructure"]
-        RepoImpl["PaymentJpaRepository"]
-        Adapter["PaymentGatewayAdapter"]
-        Mapper["PaymentMapper"]
-    end
-
-    subgraph Internal["Internal / Modulith"]
-        Module["PaymentModule"]
-        Contracts["Contracts / interfaces publiques"]
-    end
-
-    Controller --> Service
-    Service --> Command
-    Service --> Aggregate
-    Service --> Port
-    Aggregate --> VO1
-    Aggregate --> VO2
+    Aggregate --> VOs
     Aggregate --> Status
-    Aggregate --> Event
-    Port -.implements.-> RepoImpl
-    RepoImpl --> Mapper
-    RepoImpl --> Adapter
-    Module --> Contracts
-    Module --> Service
+    Aggregate --> DomEvents
+
+    Port -.->|"implements"| RepoImpl
+    RepoImpl --> JpaE
+
+    OE -->|"@ApplicationModuleListener"| OrderL
+    OrderL --> ProcessSvc
 ```
 
-## Lecture du schéma
+## Concepts DDD dans ce module
 
-- La couche Presentation expose les opérations d’initiation et de suivi d’un paiement.
-- La couche Application orchestre l’exécution du paiement sans contenir la logique de validation métier.
-- La couche Domain contient l’agrégat Payment, son état et ses événements métier.
-- La couche Infrastructure implémente le repository et l’intégration avec le prestataire de paiement.
-- Le cadre Internal / Modulith isole le module Payment et expose seulement les interfaces utiles aux autres modules.
+| Concept | Présent | Note |
+|---|---|---|
+| Aggregate Root | `Payment` | Transitions : `initiate` → `complete` ou `fail` |
+| Value Objects | `PaymentId`, `OrderReference` | `OrderReference` est un snapshot de l'identifiant de commande |
+| Domain Events | `PaymentCompletedEvent`, `PaymentFailedEvent` | Consommés par `order` et `notification` |
+| Repository (port) | `PaymentRepository` | Interface dans le domaine |
+| Mapper JPA | Absent | Le mapping est réalisé directement dans `PaymentJpaRepository` |
+| Domain Events consommés | `OrderPlacedEvent` | Via `OrderEventListener` → déclenche `ProcessPaymentService` automatiquement |
 
-## Règle de dépendance essentielle
+## Contraintes Modulith
 
-Le module respecte la direction suivante :
+- **Type** : `OPEN`
+- **allowedDependencies** : `order` — autorise l'écoute de `OrderPlacedEvent`
+- Le flux est entièrement événementiel : l'utilisateur ne déclenche pas manuellement le paiement
+- Le paiement est simulé (ADR-0007) : pas de passerelle externe, résultat aléatoire ou fixe selon l'environnement
 
+## Flux événementiel
+
+```
+order ──OrderPlacedEvent──▶ payment ──PaymentCompletedEvent──▶ order, notification
+                                    └──PaymentFailedEvent────▶ order, notification
+```
+
+## Règle de dépendance
+
+```
 Presentation → Application → Domain ← Infrastructure
+```
 
-Cette séparation permet au domaine de rester cohérent, même si le traitement externe du paiement dépend de services tiers.
+Le domaine décrit les transitions métier du paiement sans dépendre de Spring ni de JPA. L'infrastructure gère la persistence et l'écoute des événements entrants.

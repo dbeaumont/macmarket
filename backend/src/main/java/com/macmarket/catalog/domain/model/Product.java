@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.macmarket.DomainException;
 import com.macmarket.catalog.domain.event.DomainEvent;
 import com.macmarket.catalog.domain.event.ProductCreatedEvent;
 import com.macmarket.catalog.domain.event.ProductUpdatedEvent;

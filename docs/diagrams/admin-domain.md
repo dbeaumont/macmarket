@@ -2,62 +2,76 @@
 
 ## Vue synthétique DDD + Modulith
 
-Ce domaine s’organise davantage autour de vues de lecture et de pilotage que d’un agrégat classique. L’objectif est de rendre l’administration observable tout en restant aligné avec la logique DDD et la modularité du système.
+Le module Admin est un **module de lecture seule (CQRS read side)**. Il n'a pas de couche Domain propre ni d'agrégat transactionnel — il exploite des entités JPA en lecture directe sur les tables des autres modules (cf. ADR-0008). Son rôle est de fournir des vues agrégées pour le tableau de bord, les statistiques et la supervision des commandes.
 
 ```mermaid
 flowchart TB
-    subgraph Presentation["Presentation / API"]
-        Controller["AdminController"]
-        View["AdminDashboardView"]
+    subgraph EXT["Sources de données externes"]
+        OE(["order:\nOrderPlacedEvent\n[@EventListener in-process]"])
+        TABLES[("Tables BDD partagées\norder · payment · catalog\n[lecture JPA directe — ADR-0008]")]
     end
 
-    subgraph Application["Application"]
-        Service["AdminDashboardService\nou AdminOrderService"]
-        Command["UpdateOrderStatusCommand"]
+    subgraph AM["Module admin — @ApplicationModule(OPEN)\nallowedDependencies: order · payment · catalog"]
+        subgraph Presentation["Presentation / API"]
+            Controllers["AdminDashboardController\nAdminOrderController\nAdminCustomerController\nAdminStatsController"]
+            DTOs["DashboardResponse · AdminOrderResponse\nCustomerStatsResponse · CustomerSummaryResponse\nProductStatsResponse · OrderStatsResponse\nRevenueStatsResponse · LowStockProductDto\nOrderChartPoint · RevenueChartPoint · RecentOrderDto\nUpdateStatusRequest"]
+        end
+
+        subgraph Application["Application"]
+            DashSvc["AdminDashboardService"]
+            OrderSvc["AdminOrderService"]
+            CustSvc["AdminCustomerService"]
+            StatsSvc["AdminStatsService"]
+            StatsRec["AdminStatsRecorder\n[accumule les stats quotidiennes]"]
+        end
+
+        subgraph Infrastructure["Infrastructure"]
+            Repos["AdminOrderReadRepository\nAdminProductReadRepository\nAdminDailyStatsJpaRepository"]
+            Entities["AdminOrderEntity · AdminOrderItemEntity\nAdminProductEntity · AdminDailyStatsEntity\n[entités JPA read-only sur tables existantes]"]
+            EvtL["AdminEventListener\n[@EventListener — in-process, pas @ApplicationModuleListener]"]
+        end
     end
 
-    subgraph Domain["Domain"]
-        ReadModel["AdminOrderReadModel"]
-        Stats["AdminStatsView"]
-        Policy["OrderStatusPolicy"]
-    end
+    Controllers --> DashSvc
+    Controllers --> OrderSvc
+    Controllers --> CustSvc
+    Controllers --> StatsSvc
 
-    subgraph Infrastructure["Infrastructure"]
-        QueryRepo["AdminOrderQueryRepository"]
-        StatsRepo["AdminStatsRepository"]
-        Adapter["OrderIntegrationAdapter"]
-    end
+    DashSvc --> Repos
+    OrderSvc --> Repos
+    CustSvc --> Repos
+    StatsSvc --> Repos
 
-    subgraph Internal["Internal / Modulith"]
-        Module["AdminModule"]
-        Contracts["Contracts / interfaces publiques"]
-    end
+    EvtL --> StatsRec
+    StatsRec --> Repos
 
-    Controller --> View
-    Controller --> Service
-    Service --> Command
-    Service --> ReadModel
-    Service --> Stats
-    Service --> Policy
-    ReadModel --> QueryRepo
-    Stats --> StatsRepo
-    Policy --> Adapter
-    Module --> Contracts
-    Module --> Service
+    Repos --> Entities
+
+    OE -->|"@EventListener"| EvtL
+    TABLES -.->|"mappées en lecture seule"| Entities
 ```
 
-## Lecture du schéma
+## Concepts DDD dans ce module
 
-- La couche Presentation expose les écrans et endpoints d’administration.
-- La couche Application orchestre les opérations de consultation et de pilotage.
-- La couche Domain repose sur des read models et des règles de supervision plutôt que sur un agrégat de transaction classique.
-- La couche Infrastructure alimente ces vues à partir des sources de données et des intégrations existantes.
-- Le cadre Internal / Modulith matérialise la frontière du module Admin.
+| Concept | Présent | Note |
+|---|---|---|
+| Aggregate Root | Non | Module CQRS read-side : pas de logique transactionnelle |
+| Domain Events publiés | Non | Le module n'émet aucun événement |
+| Domain Events consommés | `OrderPlacedEvent` | Via `@EventListener` (synchrone in-process, non transactionnel comme `@ApplicationModuleListener`) |
+| Read Models | `AdminOrderEntity`, `AdminProductEntity`, etc. | Entités JPA mappées directement sur les tables des autres modules (ADR-0008) |
+| Repository | `AdminOrderReadRepository`, `AdminProductReadRepository`, `AdminDailyStatsJpaRepository` | En lecture seule, pas de port domain |
 
-## Règle de dépendance essentielle
+## Contraintes Modulith
 
-Le module Admin reste orienté par le besoin de lecture et de supervision :
+- **Type** : `OPEN`
+- **allowedDependencies** : `order`, `payment`, `catalog` — autorise la lecture de leurs tables JPA
+- `AdminEventListener` utilise `@EventListener` (Spring standard) et non `@ApplicationModuleListener` — le traitement est synchrone et dans la même transaction que l'émetteur
+- Les entités JPA Admin (`AdminOrderEntity`, etc.) mappent directement les tables d'autres modules : aucune couche de traduction, mais fort couplage structurel aux schémas (ADR-0008)
 
-Presentation → Application → Domain ← Infrastructure
+## Particularité architecturale
 
-Cette organisation évite de mélanger logique métier transactionnelle et logique de pilotage.
+Ce module ne suit pas le pattern DDD classique. La couche Domain est absente intentionnellement : le module Admin est un observateur des données produites par d'autres domaines, sans responsabilité métier propre.
+
+```
+Presentation → Application → Infrastructure ← (données order · payment · catalog)
+```

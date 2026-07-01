@@ -1,5 +1,7 @@
 package com.macmarket.order.domain.model;
 
-public class OrderDomainException extends RuntimeException {
+import com.macmarket.DomainException;
+
+public class OrderDomainException extends DomainException {
     public OrderDomainException(String message) { super(message); }
 }

@@ -2,69 +2,84 @@
 
 ## Vue synthétique DDD + Modulith
 
-Cette vue montre comment le bounded context Catalog s’organise autour d’un agrégat Product, avec une séparation nette entre API, cas d’usage, logique métier, persistence et frontière de module.
+Le bounded context Catalog gère le cycle de vie des produits. Il publie des événements métier à chaque modification de produit, et **consomme en retour les événements de commande** pour gérer la réservation et la libération du stock côté domaine.
 
 ```mermaid
 flowchart TB
-    subgraph Presentation["Presentation / API"]
-        Controller["ProductController"]
-        Request["CreateProductRequest"]
-        Response["ProductResponse"]
+    subgraph EXT["Modules externes"]
+        OE(["order:\nOrderPlacedEvent\nOrderStatusChangedEvent"])
     end
 
-    subgraph Application["Application"]
-        Service["CreateProductService\nou UpdateProductService"]
-        Command["CreateProductCommand"]
+    subgraph CM["Module catalog — @ApplicationModule(OPEN)\nallowedDependencies: order"]
+        subgraph Presentation["Presentation / API"]
+            Controller["CatalogController"]
+            PDTO["CreateProductRequest · UpdateProductRequest\nProductResponse · ProductResponseMapper"]
+        end
+
+        subgraph Application["Application"]
+            WriteCmd["CreateProductService\nUpdateProductService"]
+            Commands["CreateProductCommand\nUpdateProductCommand"]
+            QuerySvc["CatalogQueryService\n[lecture — exposé à cart et assistant]"]
+            PubPort["DomainEventPublisher\n[port sortant d'événements]"]
+        end
+
+        subgraph Domain["Domain"]
+            Aggregate["Product\n[Aggregate Root]\nreserveStock · confirmStockReservation · releaseStock"]
+            VOs["ProductId · Money · ProductCategory · ProductSpec\n[Value Objects]"]
+            Events["ProductCreatedEvent · ProductUpdatedEvent\nProductDeletedEvent · StockInsufficientEvent\n[Domain Events]"]
+            Port["ProductRepository\n[port sortant]"]
+        end
+
+        subgraph Infrastructure["Infrastructure"]
+            RepoImpl["ProductJpaRepository"]
+            JpaE["ProductJpaEntity · ProductSpecJpaEntity"]
+            Mapper["ProductPersistenceMapper"]
+            PubImpl["SpringDomainEventPublisher"]
+            StockL["OrderStockEventListener\n[@ApplicationModuleListener]"]
+        end
     end
 
-    subgraph Domain["Domain"]
-        Aggregate["Product\n(Aggregate Root)"]
-        VO1["ProductId"]
-        VO2["Money"]
-        VO3["ProductCategory"]
-        Port["ProductRepository\n(port sortant)"]
-        Event["ProductCreatedEvent"]
-    end
+    Controller --> WriteCmd
+    Controller --> QuerySvc
+    WriteCmd --> Commands
+    WriteCmd --> Aggregate
+    WriteCmd --> Port
+    WriteCmd --> PubPort
 
-    subgraph Infrastructure["Infrastructure"]
-        RepoImpl["ProductJpaRepository"]
-        Entity["ProductJpaEntity"]
-        Mapper["ProductMapper"]
-    end
+    Aggregate --> VOs
+    Aggregate --> Events
 
-    subgraph Internal["Internal / Modulith"]
-        Module["CatalogModule"]
-        Contracts["Contracts / interfaces publiques"]
-    end
-
-    Controller --> Request
-    Controller --> Service
-    Service --> Command
-    Service --> Aggregate
-    Service --> Port
-    Aggregate --> VO1
-    Aggregate --> VO2
-    Aggregate --> VO3
-    Aggregate --> Event
-    Port -.implements.-> RepoImpl
-    RepoImpl --> Entity
+    Port -.->|"implements"| RepoImpl
+    RepoImpl --> JpaE
     RepoImpl --> Mapper
-    Module --> Contracts
-    Module --> Service
+
+    PubPort -.->|"implements"| PubImpl
+
+    OE -->|"@ApplicationModuleListener"| StockL
+    StockL --> Port
 ```
 
-## Lecture du schéma
+## Concepts DDD dans ce module
 
-- La couche Presentation expose les opérations de gestion du catalogue.
-- La couche Application orchestre la création et la mise à jour des produits sans contenir la logique métier complète.
-- La couche Domain contient l’agrégat Product, ses objets de valeur et ses événements métier.
-- La couche Infrastructure implémente le repository et la persistance technique.
-- Le cadre Internal / Modulith représente la frontière du module Catalog et son interface avec les autres modules.
+| Concept | Présent | Note |
+|---|---|---|
+| Aggregate Root | `Product` | Protège les invariants de stock via `reserveStock` / `confirmStockReservation` / `releaseStock` |
+| Value Objects | `ProductId`, `Money`, `ProductCategory`, `ProductSpec` | Immuables, auto-validants |
+| Domain Events | `ProductCreated/Updated/Deleted`, `StockInsufficient` | Publiés via `DomainEventPublisher` après persistence |
+| Repository (port) | `ProductRepository` | Interface dans le domaine, implémentée en infrastructure |
+| Domain Events consommés | `OrderPlacedEvent`, `OrderStatusChangedEvent` | Via `OrderStockEventListener` pour gérer le stock |
 
-## Règle de dépendance essentielle
+## Contraintes Modulith
 
-La dépendance reste dirigée selon l’architecture suivante :
+- **Type** : `OPEN`
+- **allowedDependencies** : `order` — autorise l'écoute des événements de commande
+- `CatalogQueryService` est accessible directement par les modules `cart` et `assistant` (via `allowedDependencies`)
+- `SpringDomainEventPublisher` publie via `ApplicationEventPublisher` Spring, capturé par Spring Modulith
 
+## Règle de dépendance
+
+```
 Presentation → Application → Domain ← Infrastructure
+```
 
-Cette structure permet de préserver les invariants de stock, de disponibilité et de publication du produit au cœur du domaine.
+Le domaine ne connaît ni Spring, ni JPA. L'infrastructure implémente les ports définis dans le domaine (`ProductRepository`, `DomainEventPublisher`).

@@ -2,6 +2,8 @@ package com.macmarket.catalog.domain.model;
 
 import java.math.BigDecimal;
 
+import com.macmarket.DomainException;
+
 public record Money(BigDecimal amount) {
     public static final Money ZERO = new Money(BigDecimal.ZERO);
 

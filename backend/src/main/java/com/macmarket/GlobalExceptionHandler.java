@@ -3,11 +3,6 @@ package com.macmarket;
 import java.time.Instant;
 import java.util.stream.Collectors;
 
-import com.macmarket.catalog.domain.model.DomainException;
-import com.macmarket.catalog.domain.model.ProductNotFoundException;
-import com.macmarket.order.domain.model.OrderDomainException;
-import com.macmarket.order.domain.model.OrderNotFoundException;
-
 import jakarta.validation.ConstraintViolationException;
 
 import org.springframework.http.HttpStatus;
@@ -20,23 +15,13 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ProductNotFoundException.class)
-    ResponseEntity<ErrorResponse> handleProductNotFound(ProductNotFoundException ex) {
-        return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage());
-    }
-
-    @ExceptionHandler(OrderNotFoundException.class)
-    ResponseEntity<ErrorResponse> handleOrderNotFound(OrderNotFoundException ex) {
+    @ExceptionHandler(NotFoundException.class)
+    ResponseEntity<ErrorResponse> handleNotFound(NotFoundException ex) {
         return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage());
     }
 
     @ExceptionHandler(DomainException.class)
     ResponseEntity<ErrorResponse> handleDomainException(DomainException ex) {
-        return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, "DOMAIN_ERROR", ex.getMessage());
-    }
-
-    @ExceptionHandler(OrderDomainException.class)
-    ResponseEntity<ErrorResponse> handleOrderDomainException(OrderDomainException ex) {
         return buildResponse(HttpStatus.UNPROCESSABLE_ENTITY, "DOMAIN_ERROR", ex.getMessage());
     }
 

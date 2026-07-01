@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import com.macmarket.payment.domain.model.OrderReference;
 import com.macmarket.payment.domain.model.Payment;
+import com.macmarket.payment.domain.model.PaymentNotFoundException;
 import com.macmarket.payment.domain.repository.PaymentRepository;
 
 import org.springframework.stereotype.Service;
@@ -21,6 +22,6 @@ public class PaymentQueryService {
 
     public Payment findByOrderId(UUID orderId) {
         return paymentRepository.findByOrderId(OrderReference.of(orderId))
-            .orElseThrow(() -> new RuntimeException("Paiement introuvable pour la commande : " + orderId));
+            .orElseThrow(() -> new PaymentNotFoundException(orderId));
     }
 }

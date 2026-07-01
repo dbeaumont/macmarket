@@ -2,60 +2,58 @@
 
 ## Vue synthétique DDD + Modulith
 
-Ce domaine agit principalement comme un consommateur d’événements métier. Son rôle est de transformer des événements issus d’autres modules en notifications utiles pour les utilisateurs.
+Ce module est un **consommateur pur d'événements**. Il n'a ni couche Presentation, ni Application, ni Domain propre — son rôle est de traduire directement les événements métier d'autres modules en emails envoyés à l'utilisateur via Thymeleaf.
 
 ```mermaid
 flowchart TB
-    subgraph Presentation["Presentation / API"]
-        Controller["NotificationController"]
-        Template["NotificationTemplate"]
+    subgraph EXT["Modules sources"]
+        OE1(["OrderPlacedEvent"])
+        OE2(["OrderStatusChangedEvent"])
+        PE1(["PaymentCompletedEvent"])
+        PE2(["PaymentFailedEvent"])
     end
 
-    subgraph Application["Application"]
-        Service["NotificationApplicationService"]
-        Handler["EventHandler"]
+    subgraph NM["Module notification — @ApplicationModule(OPEN)\nallowedDependencies: order · payment"]
+        subgraph Infrastructure["Infrastructure"]
+            Listener["NotificationEventListener\n[@ApplicationModuleListener × 4]"]
+            Email["EmailService\n[JavaMailSender + Thymeleaf]"]
+        end
     end
 
-    subgraph Domain["Domain"]
-        Policy["NotificationPolicy"]
-        Rule["DeliveryRule"]
-        Event["OrderPlacedEvent\nou PaymentCompletedEvent"]
-    end
+    SMTP["Templates email\nThymeleaf + JavaMailSender"]
 
-    subgraph Infrastructure["Infrastructure"]
-        Listener["NotificationEventListener"]
-        Mailer["EmailService"]
-        Channel["NotificationChannelAdapter"]
-    end
+    OE1 -- "depuis order" --> Listener
+    OE2 -- "depuis order" --> Listener
+    PE1 -- "depuis payment" --> Listener
+    PE2 -- "depuis payment" --> Listener
 
-    subgraph Internal["Internal / Modulith"]
-        Module["NotificationModule"]
-        Contracts["Contracts / interfaces publiques"]
-    end
-
-    Controller --> Service
-    Service --> Handler
-    Handler --> Policy
-    Policy --> Rule
-    Rule --> Event
-    Listener --> Mailer
-    Listener --> Channel
-    Module --> Contracts
-    Module --> Service
+    Listener --> Email
+    Email --> SMTP
 ```
 
-## Lecture du schéma
+## Concepts DDD dans ce module
 
-- La couche Presentation expose les templates et points d’entrée de notification.
-- La couche Application orchestre la logique de diffusion à partir des événements reçus.
-- La couche Domain contient les règles métier de notification et le traitement des événements.
-- La couche Infrastructure implémente l’écoute et l’envoi sur un canal technique.
-- Le cadre Internal / Modulith représente la frontière du module Notification.
+| Concept | Présent | Note |
+|---|---|---|
+| Aggregate Root | Non | Aucun état métier propre — module stateless |
+| Value Objects | Non | Les données viennent directement des événements reçus |
+| Domain Events | Consomme uniquement | 4 événements reçus de `order` et `payment` |
+| Repository (port) | Non | Pas de persistance propre |
+| Application Service | Non | Pas d'orchestration — listener → mailer direct |
 
-## Règle de dépendance essentielle
+## Contraintes Modulith
 
-Le module respecte la séquence suivante :
+- **Type** : `OPEN` — les classes du module sont visibles par les autres modules
+- **allowedDependencies** : `order`, `payment` — seuls ces modules peuvent être importés dans le code du module notification
+- **@ApplicationModuleListener** : les 4 méthodes s'exécutent de façon transactionnelle et indépendante par rapport à l'émetteur (déclenchement après commit de la transaction source)
 
-Presentation → Application → Domain ← Infrastructure
+## Flux d'événements
 
-L’intérêt principal est d’isoler la logique de notification des détails d’intégration avec les canaux de communication.
+```
+order  ──OrderPlacedEvent──────────▶ notification ──▶ email
+order  ──OrderStatusChangedEvent──▶ notification ──▶ email
+payment ──PaymentCompletedEvent───▶ notification ──▶ email
+payment ──PaymentFailedEvent──────▶ notification ──▶ email
+```
+
+Ce module ne publie aucun événement. Il est un consommateur terminal des flux métier.

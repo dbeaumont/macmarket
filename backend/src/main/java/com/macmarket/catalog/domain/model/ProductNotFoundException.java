@@ -1,6 +1,8 @@
 package com.macmarket.catalog.domain.model;
 
-public class ProductNotFoundException extends DomainException {
+import com.macmarket.NotFoundException;
+
+public class ProductNotFoundException extends NotFoundException {
     public ProductNotFoundException(ProductId id) {
         super("Produit introuvable : " + id.value());
     }

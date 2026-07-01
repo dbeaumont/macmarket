@@ -1,7 +1,6 @@
 package com.macmarket.payment.application.service;
 
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 import com.macmarket.payment.domain.model.OrderReference;
 import com.macmarket.payment.domain.model.Payment;
@@ -21,10 +20,13 @@ public class ProcessPaymentService {
 
     private final PaymentRepository paymentRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final PaymentGatewaySimulator gatewaySimulator;
 
-    public ProcessPaymentService(PaymentRepository paymentRepository, ApplicationEventPublisher eventPublisher) {
+    public ProcessPaymentService(PaymentRepository paymentRepository, ApplicationEventPublisher eventPublisher,
+                                  PaymentGatewaySimulator gatewaySimulator) {
         this.paymentRepository = paymentRepository;
         this.eventPublisher = eventPublisher;
+        this.gatewaySimulator = gatewaySimulator;
     }
 
     public Payment processForOrder(UUID orderId, java.math.BigDecimal amount) {
@@ -32,7 +34,7 @@ public class ProcessPaymentService {
         var payment = Payment.initiate(orderRef, amount);
         paymentRepository.save(payment);
 
-        boolean success = ThreadLocalRandom.current().nextInt(100) < 90;
+        boolean success = gatewaySimulator.isApproved();
 
         if (success) {
             var ref = "TXN-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();

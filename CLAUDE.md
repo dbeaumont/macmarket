@@ -1,4 +1,4 @@
-# Instructions de développement — Angular TypeScript & Java Spring Boot
+# Instructions de développement — TypeScript (Angular / React) & Java Spring Boot
 
 ## Règle fondamentale
 
@@ -6,7 +6,9 @@ Ces instructions s'appliquent à tout développement dans ce projet. Elles ne so
 
 ---
 
-## TypeScript / Angular
+## TypeScript / Angular / React
+
+Les règles de typage strict, d'immutabilité et de gestion des erreurs ci-dessous s'appliquent **identiquement** aux deux stacks frontend autorisées : Angular et React. Angular et React sont des choix équivalents — chaque projet retient l'une des deux stacks (justifiée si besoin par un ADR, ex. ADR-0006 pour macmarket qui acte React) et ne mélange pas les deux au sein d'une même application. Seules les règles d'architecture (composants, gestion d'état, cycle de vie) diffèrent selon la stack retenue et sont décrites dans des sous-sections dédiées.
 
 ### Typage strict — aucune exception
 
@@ -87,6 +89,49 @@ export class UserCardComponent {
 }
 ```
 
+### Architecture React
+
+- Un composant = une responsabilité unique (SRP)
+- Composants **fonctionnels uniquement** — pas de class components
+- Les composants ne contiennent pas de logique métier ni d'appels réseau directs : déléguer à des **custom hooks** (`use-xxx.ts`) ou à des clients de service dédiés
+- État serveur (données distantes) : utiliser **TanStack Query** — jamais de `useEffect` + `fetch` manuel pour du data-fetching
+- État client partagé : **Zustand** (ou Context API pour un état simple, local à un sous-arbre), toujours mis à jour de façon immuable (spread `{...state}` / `[...array]`) — jamais de mutation directe du store
+- `useEffect` : toujours nettoyer abonnements/timers via la fonction de retour (cleanup) — équivalent du `takeUntilDestroyed` Angular
+- Un hook custom = une responsabilité, nommé `useXxx`
+- Props typées explicitement via une `interface XxxProps` en `readonly` — jamais de props implicites `any`
+
+```typescript
+// REQUIS — composant fonctionnel typé et immutable
+interface UserCardProps {
+  readonly userId: string;
+}
+
+export function UserCardComponent({ userId }: UserCardProps): JSX.Element {
+  const { data: user } = useUser(userId); // custom hook — délègue la logique/fetch
+
+  return <div>{user?.name}</div>;
+}
+
+// REQUIS — custom hook : logique et accès data isolés du composant
+function useUser(userId: string) {
+  return useQuery({
+    queryKey: ['user', userId],
+    queryFn: () => fetchUser(userId),
+  });
+}
+
+// REQUIS — store Zustand : mise à jour immuable
+interface CartState {
+  readonly items: readonly CartItem[];
+  addItem: (item: CartItem) => void;
+}
+
+const useCartStore = create<CartState>((set) => ({
+  items: [],
+  addItem: (item) => set((state) => ({ items: [...state.items, item] })),
+}));
+```
+
 ### Gestion des erreurs TypeScript
 
 - Pas de `try/catch` vides
@@ -95,15 +140,16 @@ export class UserCardComponent {
 
 ### Conventions de nommage
 
-| Élément | Convention |
-|---|---|
-| Composant | `PascalCase` + suffixe `Component` |
-| Service | `PascalCase` + suffixe `Service` |
-| Interface/Type | `PascalCase` |
-| Enum | `PascalCase`, valeurs `SCREAMING_SNAKE_CASE` |
-| Variable/Propriété | `camelCase` |
-| Constante globale | `SCREAMING_SNAKE_CASE` |
-| Fichier | `kebab-case.type.ts` |
+| Élément | Angular | React |
+|---|---|---|
+| Composant | `PascalCase` + suffixe `Component` | `PascalCase` (fichier `PascalCase.tsx`) |
+| Service / logique partagée | `PascalCase` + suffixe `Service` | Hook `useXxx` (fichier `use-xxx.ts`) ou client de service `PascalCase` |
+| Store d'état global | *(service + Signal)* | `camelCase` + suffixe `Store` (ex. `cartStore`), fichier `kebab-case-store.ts` |
+| Interface/Type | `PascalCase` | `PascalCase` |
+| Enum | `PascalCase`, valeurs `SCREAMING_SNAKE_CASE` | `PascalCase`, valeurs `SCREAMING_SNAKE_CASE` |
+| Variable/Propriété | `camelCase` | `camelCase` |
+| Constante globale | `SCREAMING_SNAKE_CASE` | `SCREAMING_SNAKE_CASE` |
+| Fichier | `kebab-case.type.ts` | Composants `PascalCase.tsx` ; hooks/stores/utilitaires `kebab-case.ts` |
 
 ---
 

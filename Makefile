@@ -1,7 +1,7 @@
 .PHONY: help init up down restart logs status urls dev dev-down \
         backend-run shop-run admin-run \
         build build-backend build-shop build-admin \
-        test test-modularity \
+        test test-modularity test-frontend \
         db-reset db-shell \
         ollama-status ollama-logs ollama-pull \
         clean reset
@@ -139,6 +139,10 @@ test: ## Lancer les tests backend (Testcontainers)
 
 test-modularity: ## Lancer uniquement les tests de modularite
 	cd backend && ./mvnw test -Dtest=MacMarketModularityTests
+
+test-frontend: ## Lancer les tests des deux frontends (Vitest)
+	cd frontend-shop && npm test
+	cd frontend-admin && npm test
 
 # === Base de donnees ===
 

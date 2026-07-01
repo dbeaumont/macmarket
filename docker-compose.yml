@@ -134,6 +134,9 @@ services:
     build:
       context: ./frontend-shop
       dockerfile: Dockerfile
+      args:
+        NPM_REGISTRY_URL: ${NPM_REGISTRY_URL}
+        NPM_REGISTRY_HOST: ${NPM_REGISTRY_HOST}
       secrets:
         - npm_token
     container_name: macmarket-frontend-shop
@@ -155,6 +158,9 @@ services:
     build:
       context: ./frontend-admin
       dockerfile: Dockerfile
+      args:
+        NPM_REGISTRY_URL: ${NPM_REGISTRY_URL}
+        NPM_REGISTRY_HOST: ${NPM_REGISTRY_HOST}
       secrets:
         - npm_token
     container_name: macmarket-frontend-admin
