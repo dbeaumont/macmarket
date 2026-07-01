@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingCart, Loader2 } from 'lucide-react';
 
 export function CheckoutPage() {
-  const { cart, clearCart } = useCartStore();
+  const { cart, clearCart, fetchCart } = useCartStore();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -29,13 +29,14 @@ export function CheckoutPage() {
     setError('');
     try {
       const order = await placeOrder(form);
-      clearCart();
+      await clearCart();
       toast.success('Commande passee avec succes');
       navigate(`/orders/${order.id}`, { state: { justPlaced: true } });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Erreur lors de la commande';
       toast.error('Erreur de paiement');
       setError(message);
+      await fetchCart();
     } finally {
       setLoading(false);
     }
