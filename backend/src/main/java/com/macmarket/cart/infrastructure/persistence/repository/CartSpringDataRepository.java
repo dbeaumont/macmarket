@@ -13,6 +13,8 @@ import org.springframework.data.jpa.repository.Query;
 interface CartSpringDataRepository extends JpaRepository<CartJpaEntity, UUID> {
     Optional<CartJpaEntity> findByUserId(String userId);
 
+    void deleteByUserId(String userId);
+
     @Modifying
     @Query("DELETE FROM CartJpaEntity c WHERE c.updatedAt < :cutoff")
     int deleteByUpdatedAtBefore(Instant cutoff);

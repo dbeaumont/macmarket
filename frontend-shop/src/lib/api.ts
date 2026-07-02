@@ -1,3 +1,6 @@
+import type { Cart } from '@/stores/cart-store';
+import { getOrCreateGuestToken } from '@/lib/guest-cart';
+
 const API_BASE = '/api/v1';
 
 let _getToken: (() => Promise<string | undefined>) | null = null;
@@ -17,6 +20,10 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
+  }
+
+  if (!headers['Authorization'] && path.startsWith('/cart')) {
+    headers['X-Guest-Cart-Token'] = getOrCreateGuestToken();
   }
 
   const res = await fetch(`${API_BASE}${path}`, { ...init, headers });
@@ -128,4 +135,8 @@ export function fetchOrder(id: string): Promise<OrderResponse> {
 
 export function fetchPaymentStatus(orderId: string): Promise<PaymentResponse> {
   return apiFetch(`/payments/order/${orderId}`);
+}
+
+export function mergeGuestCart(guestToken: string): Promise<Cart> {
+  return apiFetch('/cart/merge', { method: 'POST', body: JSON.stringify({ guestToken }) });
 }

@@ -1,5 +1,4 @@
 import { useParams, Link } from 'react-router-dom';
-import { useAuth } from 'react-oidc-context';
 import { useProduct } from '@/hooks/use-products';
 import { useCartStore } from '@/stores/cart-store';
 import { ProductDetailSkeleton } from '@/components/ui/loading-skeleton';
@@ -18,12 +17,10 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 export function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-  const auth = useAuth();
   const { addItem } = useCartStore();
   const { data: product, isLoading } = useProduct(slug!);
 
   const handleAddToCart = () => {
-    if (!auth.isAuthenticated) { auth.signinRedirect(); return; }
     if (product) addItem(product.id, 1);
   };
 

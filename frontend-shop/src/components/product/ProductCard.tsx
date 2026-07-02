@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { useAuth } from 'react-oidc-context';
 import type { Product } from '@/lib/api';
 import { useCartStore } from '@/stores/cart-store';
 import { Card, CardContent } from '@/components/ui/card';
@@ -17,12 +16,10 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export function ProductCard({ product }: { product: Product }) {
-  const auth = useAuth();
   const { addItem } = useCartStore();
   const available = product.stockQuantity - product.reservedQuantity;
 
   const handleAddToCart = () => {
-    if (!auth.isAuthenticated) { auth.signinRedirect(); return; }
     addItem(product.id, 1);
   };
 

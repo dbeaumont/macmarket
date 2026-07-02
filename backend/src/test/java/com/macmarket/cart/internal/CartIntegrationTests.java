@@ -3,6 +3,7 @@ package com.macmarket.cart.internal;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import com.macmarket.TestcontainersConfiguration;
 import com.macmarket.cart.application.service.CartApplicationService;
 import com.macmarket.catalog.application.service.CatalogQueryService;
 import com.macmarket.catalog.domain.model.Product;
@@ -11,12 +12,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @ActiveProfiles("dev")
+@Import(TestcontainersConfiguration.class)
 class CartIntegrationTests {
 
     @Autowired
@@ -112,5 +115,42 @@ class CartIntegrationTests {
         assertThat(item.getProductName()).isEqualTo("Mac Mini M4 16Go/256Go");
         assertThat(item.getProductImage()).isNotBlank();
         assertThat(item.getUnitPrice()).isEqualByComparingTo(new BigDecimal("699.00"));
+    }
+
+    @Test
+    void shouldAddItemToGuestCartLikeARegularCart() {
+        var guestKey = CartApplicationService.guestOwnerKey("guest-token-" + UUID.randomUUID());
+        var cart = cartService.addItem(guestKey, testProduct.getId().value(), 1);
+
+        assertThat(cart.getItems()).hasSize(1);
+        assertThat(cart.getItems().getFirst().getProductId()).isEqualTo(testProduct.getId().value());
+    }
+
+    @Test
+    void shouldMergeGuestCartIntoUserCart() {
+        var product2 = catalogService.findBySlug("macbook-air-13-m4-16-256-skyblue");
+        var guestToken = "guest-token-" + UUID.randomUUID();
+        var guestKey = CartApplicationService.guestOwnerKey(guestToken);
+
+        cartService.addItem(userId, testProduct.getId().value(), 1);
+        cartService.addItem(guestKey, testProduct.getId().value(), 2);
+        cartService.addItem(guestKey, product2.getId().value(), 1);
+
+        var merged = cartService.mergeGuestCartIntoUser(guestToken, userId);
+
+        assertThat(merged.getItems()).hasSize(2);
+        var mergedTestProductItem = merged.getItems().stream()
+            .filter(i -> i.getProductId().equals(testProduct.getId().value()))
+            .findFirst().orElseThrow();
+        assertThat(mergedTestProductItem.getQuantity()).isEqualTo(3);
+
+        assertThat(cartService.getCart(guestKey).getItems()).isEmpty();
+    }
+
+    @Test
+    void shouldNotFailWhenMergingWithNoGuestCart() {
+        var merged = cartService.mergeGuestCartIntoUser("guest-token-" + UUID.randomUUID(), userId);
+
+        assertThat(merged.getItems()).isEmpty();
     }
 }

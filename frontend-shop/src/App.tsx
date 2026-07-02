@@ -8,6 +8,7 @@ import { ShopHeader } from '@/components/layout/ShopHeader';
 import { Footer } from '@/components/layout/Footer';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { GuestCartMerge } from '@/components/auth/GuestCartMerge';
 import { Toaster } from '@/components/ui/sonner';
 import { HomePage } from '@/pages/HomePage';
 import { ProductListPage } from '@/pages/ProductListPage';
@@ -49,6 +50,7 @@ export default function App() {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <TokenSync />
+          <GuestCartMerge />
           <div className="flex min-h-screen flex-col">
             <ShopHeader />
             <main className="flex-1">

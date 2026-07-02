@@ -56,6 +56,11 @@ class CartJpaRepository implements CartRepository {
     }
 
     @Override
+    public void deleteByUserId(String userId) {
+        springData.deleteByUserId(userId);
+    }
+
+    @Override
     public int deleteAbandonedCarts(Instant cutoff) {
         return springData.deleteByUpdatedAtBefore(cutoff);
     }

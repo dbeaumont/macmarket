@@ -16,9 +16,7 @@ export function ShopHeader() {
   const count = itemCount();
 
   useEffect(() => {
-    if (auth.isAuthenticated) {
-      fetchCart();
-    }
+    fetchCart();
   }, [auth.isAuthenticated, fetchCart]);
 
   useEffect(() => {
@@ -60,7 +58,7 @@ export function ShopHeader() {
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
             <button
-              onClick={() => auth.isAuthenticated ? setCartOpen(true) : auth.signinRedirect()}
+              onClick={() => setCartOpen(true)}
               className="relative inline-flex items-center justify-center rounded-lg h-8 w-8 hover:bg-muted transition-colors"
             >
               <ShoppingCart className="h-5 w-5" />

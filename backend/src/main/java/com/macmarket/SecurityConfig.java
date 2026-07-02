@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -30,6 +31,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/products/**", "/api/v1/categories/**").permitAll()
                 .requestMatchers("/api/v1/admin/stats/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/admin/**").hasAnyRole("MANAGER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/api/v1/cart/merge").authenticated()
+                .requestMatchers("/api/v1/cart/**").permitAll()
                 .requestMatchers("/api/v1/**").authenticated()
                 .requestMatchers("/actuator/health").permitAll()
                 .anyRequest().permitAll()

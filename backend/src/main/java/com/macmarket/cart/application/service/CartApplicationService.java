@@ -14,12 +14,21 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class CartApplicationService {
 
+    private static final String GUEST_PREFIX = "guest:";
+
     private final CartRepository cartRepository;
     private final CatalogQueryService catalogService;
 
     public CartApplicationService(CartRepository cartRepository, CatalogQueryService catalogService) {
         this.cartRepository = cartRepository;
         this.catalogService = catalogService;
+    }
+
+    public static String guestOwnerKey(String guestToken) {
+        if (guestToken == null || guestToken.isBlank()) {
+            throw new IllegalArgumentException("Guest cart token is required");
+        }
+        return GUEST_PREFIX + guestToken;
     }
 
     @Transactional(readOnly = true)
@@ -59,6 +68,20 @@ public class CartApplicationService {
 
     public int cleanupAbandonedCarts(java.time.Instant cutoff) {
         return cartRepository.deleteAbandonedCarts(cutoff);
+    }
+
+    public Cart mergeGuestCartIntoUser(String guestToken, String userId) {
+        String guestKey = guestOwnerKey(guestToken);
+        var userCart = getOrCreate(userId);
+        cartRepository.findByUserId(guestKey).ifPresent(guestCart -> {
+            for (var item : guestCart.getItems()) {
+                userCart.addItem(item.getProductId(), item.getProductName(),
+                    item.getProductImage(), item.getUnitPrice(), item.getQuantity());
+            }
+            cartRepository.save(userCart);
+            cartRepository.deleteByUserId(guestKey);
+        });
+        return userCart;
     }
 
     private Cart getOrCreate(String userId) {
