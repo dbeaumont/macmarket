@@ -28,10 +28,16 @@ function TokenSync() {
   const auth = useAuth();
   useEffect(() => {
     setTokenProvider(async () => {
-      if (auth.user?.expired) {
-        try { await auth.signinSilent(); } catch { /* ignore */ }
+      if (!auth.user) return undefined;
+      if (auth.user.expired) {
+        try {
+          const refreshed = await auth.signinSilent();
+          return refreshed?.access_token;
+        } catch {
+          return undefined;
+        }
       }
-      return auth.user?.access_token;
+      return auth.user.access_token;
     });
   }, [auth]);
   return null;

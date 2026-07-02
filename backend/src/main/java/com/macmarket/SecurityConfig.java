@@ -14,6 +14,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
+import jakarta.servlet.http.HttpServletRequest;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -33,9 +35,22 @@ public class SecurityConfig {
                 .anyRequest().permitAll()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
+                .bearerTokenResolver(this::resolveBearerToken)
                 .jwt(jwt -> jwt.jwtAuthenticationConverter(keycloakJwtConverter()))
             )
             .build();
+    }
+
+    private String resolveBearerToken(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        if (path.startsWith("/api/v1/products") || path.startsWith("/api/v1/categories")) {
+            return null; // Endpoints publics : pas de validation de token
+        }
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            return authHeader.substring(7);
+        }
+        return null;
     }
 
     private JwtAuthenticationConverter keycloakJwtConverter() {

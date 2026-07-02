@@ -29,7 +29,7 @@ export function ProductCard({ product }: { product: Product }) {
   return (
     <Card className="group overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
       <Link to={`/products/${product.slug}`}>
-        <div className="aspect-square overflow-hidden bg-muted/30 p-4">
+        <div className="aspect-square overflow-hidden p-4" style={{ backgroundColor: '#F5F5F7' }}>
           <img
             src={product.imageUrl}
             alt={product.name}
