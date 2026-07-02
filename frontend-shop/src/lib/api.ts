@@ -90,6 +90,17 @@ export function fetchMe(): Promise<UserInfo> {
   return apiFetch('/users/me');
 }
 
+export interface ShippingProfile {
+  readonly name: string;
+  readonly address: string;
+  readonly email: string;
+}
+
+export async function fetchShippingProfile(): Promise<ShippingProfile | null> {
+  const profile = await apiFetch<ShippingProfile | undefined>('/users/me/shipping-profile');
+  return profile ?? null;
+}
+
 export interface OrderItem {
   readonly productId: string;
   readonly productName: string;

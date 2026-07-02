@@ -2,21 +2,27 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useCartStore } from '@/stores/cart-store';
-import { placeOrder } from '@/lib/api';
+import { placeOrder, type ShippingProfile } from '@/lib/api';
+import { useShippingProfile } from '@/hooks/use-shipping-profile';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ShoppingCart, Loader2 } from 'lucide-react';
 
-export function CheckoutPage() {
-  const { cart, clearCart, fetchCart } = useCartStore();
+interface ShippingFormProps {
+  readonly initialProfile: ShippingProfile | null | undefined;
+  readonly total: number;
+}
+
+function ShippingForm({ initialProfile, total }: ShippingFormProps) {
+  const { clearCart, fetchCart } = useCartStore();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [form, setForm] = useState({
-    shippingName: '',
-    shippingAddress: '',
-    shippingEmail: '',
+    shippingName: initialProfile?.name ?? '',
+    shippingAddress: initialProfile?.address ?? '',
+    shippingEmail: initialProfile?.email ?? '',
   });
 
   const updateField = (field: string, value: string) => {
@@ -42,6 +48,42 @@ export function CheckoutPage() {
     }
   };
 
+  return (
+    <form onSubmit={handleSubmit} className="md:col-span-3 space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Informations de livraison</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <label className="text-sm font-medium">Nom complet</label>
+            <Input value={form.shippingName} onChange={e => updateField('shippingName', e.target.value)} required />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Adresse</label>
+            <Input value={form.shippingAddress} onChange={e => updateField('shippingAddress', e.target.value)} required />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Email</label>
+            <Input type="email" value={form.shippingEmail} onChange={e => updateField('shippingEmail', e.target.value)} required />
+          </div>
+        </CardContent>
+      </Card>
+
+      {error && <p className="text-sm text-destructive">{error}</p>}
+
+      <Button type="submit" size="lg" className="w-full" disabled={loading}>
+        {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
+        {loading ? 'Traitement...' : `Payer ${total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}`}
+      </Button>
+    </form>
+  );
+}
+
+export function CheckoutPage() {
+  const { cart } = useCartStore();
+  const { data: shippingProfile, isLoading: profileLoading } = useShippingProfile();
+
   if (!cart || cart.items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-16 text-center">
@@ -57,34 +99,9 @@ export function CheckoutPage() {
       <h1 className="text-2xl font-bold mb-6">Finaliser la commande</h1>
 
       <div className="grid md:grid-cols-5 gap-6">
-        <form onSubmit={handleSubmit} className="md:col-span-3 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Informations de livraison</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div>
-                <label className="text-sm font-medium">Nom complet</label>
-                <Input value={form.shippingName} onChange={e => updateField('shippingName', e.target.value)} required />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Adresse</label>
-                <Input value={form.shippingAddress} onChange={e => updateField('shippingAddress', e.target.value)} required />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Email</label>
-                <Input type="email" value={form.shippingEmail} onChange={e => updateField('shippingEmail', e.target.value)} required />
-              </div>
-            </CardContent>
-          </Card>
-
-          {error && <p className="text-sm text-destructive">{error}</p>}
-
-          <Button type="submit" size="lg" className="w-full" disabled={loading}>
-            {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
-            {loading ? 'Traitement...' : `Payer ${cart.total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}`}
-          </Button>
-        </form>
+        {!profileLoading && (
+          <ShippingForm key={shippingProfile ? 'prefilled' : 'empty'} initialProfile={shippingProfile} total={cart.total} />
+        )}
 
         <div className="md:col-span-2">
           <Card>

@@ -1,2 +1,2 @@
-@org.springframework.modulith.ApplicationModule(allowedDependencies = {})
+@org.springframework.modulith.ApplicationModule(allowedDependencies = { "order" })
 package com.macmarket.user;

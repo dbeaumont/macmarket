@@ -36,7 +36,7 @@ public class Order {
         }
         var order = new Order(OrderId.generate(), userId, items, total, shippingInfo,
             OrderStatus.PENDING_PAYMENT, Instant.now());
-        order.domainEvents.add(new OrderPlacedEvent(order.id, order.userId, order.total, order.items));
+        order.domainEvents.add(new OrderPlacedEvent(order.id, order.userId, order.total, order.items, order.shippingInfo));
         return order;
     }
 
