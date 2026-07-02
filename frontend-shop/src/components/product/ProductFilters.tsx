@@ -4,6 +4,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Search, X } from 'lucide-react';
 
+const SORT_OPTIONS = [
+  { value: 'createdAt,desc', label: 'Plus récents' },
+  { value: 'price,asc', label: 'Prix croissant' },
+  { value: 'price,desc', label: 'Prix décroissant' },
+  { value: 'name,asc', label: 'Nom A-Z' },
+] as const;
+
 const CATEGORY_LABELS: Record<string, string> = {
   MACBOOK_AIR: 'MacBook Air',
   MACBOOK_PRO: 'MacBook Pro',
@@ -55,13 +62,14 @@ export function ProductFilters({ search, category, sort, onSearchChange, onCateg
 
       <Select value={sort} onValueChange={(v) => v && onSortChange(v)}>
         <SelectTrigger className="w-full sm:w-[180px]">
-          <SelectValue placeholder="Trier par" />
+          <SelectValue placeholder="Trier par">
+            {SORT_OPTIONS.find((o) => o.value === sort.replace(';', ','))?.label ?? sort}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="createdAt,desc">Plus recents</SelectItem>
-          <SelectItem value="price,asc">Prix croissant</SelectItem>
-          <SelectItem value="price,desc">Prix decroissant</SelectItem>
-          <SelectItem value="name,asc">Nom A-Z</SelectItem>
+          {SORT_OPTIONS.map((o) => (
+            <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+          ))}
         </SelectContent>
       </Select>
 
