@@ -1,7 +1,6 @@
 import { useAuth } from 'react-oidc-context';
-import { useQuery } from '@tanstack/react-query';
 import { getUserRoles } from '@/lib/auth';
-import { fetchDashboard } from '@/lib/api';
+import { useDashboard } from '@/hooks/use-dashboard';
 import type { DashboardData } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/shared/StatusBadge';
@@ -191,10 +190,7 @@ export function DashboardPage() {
   const auth = useAuth();
   const roles = getUserRoles(auth.user);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['dashboard'],
-    queryFn: fetchDashboard,
-  });
+  const { data, isLoading } = useDashboard();
 
   return (
     <div className="space-y-6">

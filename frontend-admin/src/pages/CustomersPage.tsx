@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import {
   useReactTable,
   getCoreRowModel,
   createColumnHelper,
   flexRender,
 } from '@tanstack/react-table';
-import { fetchCustomers } from '@/lib/api';
 import type { CustomerSummary } from '@/lib/api';
+import { useCustomers } from '@/hooks/use-customers';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Eye } from 'lucide-react';
@@ -55,14 +54,7 @@ const columns = [
 export function CustomersPage() {
   const [page, setPage] = useState(0);
 
-  const params = new URLSearchParams();
-  params.set('page', String(page));
-  params.set('size', '10');
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['customers', page],
-    queryFn: () => fetchCustomers(params),
-  });
+  const { data, isLoading } = useCustomers(page);
 
   const table = useReactTable({
     data: data?.content ? [...data.content] : [],

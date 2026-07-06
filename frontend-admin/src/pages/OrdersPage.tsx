@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import {
   useReactTable,
   getCoreRowModel,
   createColumnHelper,
   flexRender,
 } from '@tanstack/react-table';
-import { fetchAdminOrders } from '@/lib/api';
 import type { AdminOrder } from '@/lib/api';
+import { useAdminOrders } from '@/hooks/use-admin-orders';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
@@ -68,17 +67,7 @@ export function OrdersPage() {
   const [page, setPage] = useState(0);
   const [statusFilter, setStatusFilter] = useState('');
 
-  const params = new URLSearchParams();
-  params.set('page', String(page));
-  params.set('size', '10');
-  if (statusFilter) {
-    params.set('status', statusFilter);
-  }
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['admin-orders', page, statusFilter],
-    queryFn: () => fetchAdminOrders(params),
-  });
+  const { data, isLoading } = useAdminOrders(page, statusFilter);
 
   const table = useReactTable({
     data: data?.content ? [...data.content] : [],

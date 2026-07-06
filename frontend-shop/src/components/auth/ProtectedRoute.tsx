@@ -1,6 +1,10 @@
 import { useAuth } from 'react-oidc-context';
 
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+interface ProtectedRouteProps {
+  readonly children: React.ReactNode;
+}
+
+export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const auth = useAuth();
 
   if (auth.isLoading) {

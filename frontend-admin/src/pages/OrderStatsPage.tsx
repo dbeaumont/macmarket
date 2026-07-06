@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { fetchOrderStats } from '@/lib/api';
+import { useOrderStats } from '@/hooks/use-stats';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PeriodSelector } from '@/components/shared/PeriodSelector';
 import type { Period } from '@/components/shared/PeriodSelector';
@@ -34,10 +33,7 @@ interface StatusEntry {
 export function OrderStatsPage() {
   const [period, setPeriod] = useState<Period>('30d');
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['stats', 'orders', period],
-    queryFn: () => fetchOrderStats(period),
-  });
+  const { data, isLoading } = useOrderStats(period);
 
   const chartData = data?.chart.map((point) => ({
     date: new Date(point.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' }),

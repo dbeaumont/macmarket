@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useCartStore } from '@/stores/cart-store';
-import { placeOrder, type ShippingProfile } from '@/lib/api';
+import type { ShippingProfile } from '@/lib/api';
 import { useShippingProfile } from '@/hooks/use-shipping-profile';
+import { usePlaceOrder } from '@/hooks/use-place-order';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,8 +18,7 @@ interface ShippingFormProps {
 function ShippingForm({ initialProfile, total }: ShippingFormProps) {
   const { clearCart, fetchCart } = useCartStore();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const placeOrderMutation = usePlaceOrder();
   const [form, setForm] = useState({
     shippingName: initialProfile?.name ?? '',
     shippingAddress: initialProfile?.address ?? '',
@@ -29,23 +29,19 @@ function ShippingForm({ initialProfile, total }: ShippingFormProps) {
     setForm(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    try {
-      const order = await placeOrder(form);
-      await clearCart();
-      toast.success('Commande passee avec succes');
-      navigate(`/orders/${order.id}`, { state: { justPlaced: true } });
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erreur lors de la commande';
-      toast.error('Erreur de paiement');
-      setError(message);
-      await fetchCart();
-    } finally {
-      setLoading(false);
-    }
+    placeOrderMutation.mutate(form, {
+      onSuccess: async (order) => {
+        await clearCart();
+        toast.success('Commande passee avec succes');
+        navigate(`/orders/${order.id}`, { state: { justPlaced: true } });
+      },
+      onError: async () => {
+        toast.error('Erreur de paiement');
+        await fetchCart();
+      },
+    });
   };
 
   return (
@@ -70,11 +66,13 @@ function ShippingForm({ initialProfile, total }: ShippingFormProps) {
         </CardContent>
       </Card>
 
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {placeOrderMutation.error && (
+        <p className="text-sm text-destructive">{placeOrderMutation.error.message}</p>
+      )}
 
-      <Button type="submit" size="lg" className="w-full" disabled={loading}>
-        {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
-        {loading ? 'Traitement...' : `Payer ${total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}`}
+      <Button type="submit" size="lg" className="w-full" disabled={placeOrderMutation.isPending}>
+        {placeOrderMutation.isPending ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : null}
+        {placeOrderMutation.isPending ? 'Traitement...' : `Payer ${total.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}`}
       </Button>
     </form>
   );

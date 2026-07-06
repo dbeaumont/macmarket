@@ -1,7 +1,11 @@
 import { useCartStore, type CartItem } from '@/stores/cart-store';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 
-export function CartItemRow({ item }: { item: CartItem }) {
+interface CartItemRowProps {
+  readonly item: CartItem;
+}
+
+export function CartItemRow({ item }: CartItemRowProps) {
   const { updateQuantity, removeItem } = useCartStore();
 
   return (

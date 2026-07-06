@@ -19,19 +19,24 @@ export interface Cart {
 }
 
 interface CartState {
-  cart: Cart | null;
-  loading: boolean;
-  fetchCart: () => Promise<void>;
-  addItem: (productId: string, quantity: number) => Promise<void>;
-  updateQuantity: (productId: string, quantity: number) => Promise<void>;
-  removeItem: (productId: string) => Promise<void>;
-  clearCart: () => Promise<void>;
-  itemCount: () => number;
+  readonly cart: Cart | null;
+  readonly loading: boolean;
+  readonly setCart: (cart: Cart) => void;
+  readonly fetchCart: () => Promise<void>;
+  readonly addItem: (productId: string, quantity: number) => Promise<void>;
+  readonly updateQuantity: (productId: string, quantity: number) => Promise<void>;
+  readonly removeItem: (productId: string) => Promise<void>;
+  readonly clearCart: () => Promise<void>;
+  readonly itemCount: () => number;
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
   cart: null,
   loading: false,
+
+  setCart: (cart: Cart) => {
+    set({ cart });
+  },
 
   fetchCart: async () => {
     set({ loading: true });

@@ -1,7 +1,5 @@
-import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchAdminOrder, updateOrderStatus } from '@/lib/api';
+import { useOrderDetail } from '@/hooks/use-order-detail';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
@@ -27,23 +25,7 @@ const ORDER_STATUSES = [
 export function OrderDetailPage() {
   const { id } = useParams<{ readonly id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [newStatus, setNewStatus] = useState('');
-
-  const { data: order, isLoading } = useQuery({
-    queryKey: ['admin-order', id],
-    queryFn: () => fetchAdminOrder(id!),
-    enabled: Boolean(id),
-  });
-
-  const statusMutation = useMutation({
-    mutationFn: (status: string) => updateOrderStatus(id!, status),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-order', id] });
-      queryClient.invalidateQueries({ queryKey: ['admin-orders'] });
-      setNewStatus('');
-    },
-  });
+  const { order, isLoading, newStatus, setNewStatus, statusMutation } = useOrderDetail(id);
 
   if (isLoading) {
     return (

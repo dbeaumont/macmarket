@@ -2,7 +2,12 @@ import { useAuth } from 'react-oidc-context';
 import { hasRole } from '@/lib/auth';
 import { Navigate } from 'react-router-dom';
 
-export function AdminGuard({ children, requiredRole }: { children: React.ReactNode; requiredRole?: 'ADMIN' }) {
+interface AdminGuardProps {
+  readonly children: React.ReactNode;
+  readonly requiredRole?: 'ADMIN';
+}
+
+export function AdminGuard({ children, requiredRole }: AdminGuardProps) {
   const auth = useAuth();
 
   if (auth.isLoading) {

@@ -1,6 +1,5 @@
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { fetchCustomerOrders } from '@/lib/api';
+import { useCustomerOrders } from '@/hooks/use-customer-orders';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
@@ -18,11 +17,7 @@ export function CustomerDetailPage() {
   const { userId } = useParams<{ readonly userId: string }>();
   const navigate = useNavigate();
 
-  const { data: orders, isLoading } = useQuery({
-    queryKey: ['customer-orders', userId],
-    queryFn: () => fetchCustomerOrders(userId!),
-    enabled: Boolean(userId),
-  });
+  const { data: orders, isLoading } = useCustomerOrders(userId);
 
   if (isLoading) {
     return (

@@ -8,16 +8,12 @@ import { CartDrawer } from '@/components/cart/CartDrawer';
 
 export function ShopHeader() {
   const auth = useAuth();
-  const { fetchCart, itemCount } = useCartStore();
+  const { itemCount } = useCartStore();
   const [cartOpen, setCartOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [badgeBounce, setBadgeBounce] = useState(false);
   const prevCountRef = useRef(0);
   const count = itemCount();
-
-  useEffect(() => {
-    fetchCart();
-  }, [auth.isAuthenticated, fetchCart]);
 
   useEffect(() => {
     if (count > prevCountRef.current && prevCountRef.current >= 0) {

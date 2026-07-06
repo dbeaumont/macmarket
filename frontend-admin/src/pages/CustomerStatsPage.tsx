@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { fetchCustomerStats } from '@/lib/api';
+import { useCustomerStats } from '@/hooks/use-stats';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PeriodSelector } from '@/components/shared/PeriodSelector';
 import type { Period } from '@/components/shared/PeriodSelector';
@@ -13,10 +12,7 @@ function formatCurrency(value: number): string {
 export function CustomerStatsPage() {
   const [period, setPeriod] = useState<Period>('30d');
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['stats', 'customers', period],
-    queryFn: () => fetchCustomerStats(period),
-  });
+  const { data, isLoading } = useCustomerStats(period);
 
   const kpis = data ? [
     {

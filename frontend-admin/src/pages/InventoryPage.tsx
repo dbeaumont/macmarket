@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import {
   useReactTable,
   getCoreRowModel,
   createColumnHelper,
   flexRender,
 } from '@tanstack/react-table';
-import { fetchProducts } from '@/lib/api';
 import type { Product } from '@/lib/api';
+import { useInventory } from '@/hooks/use-inventory';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StockBadge } from '@/components/shared/StockBadge';
@@ -76,17 +75,7 @@ export function InventoryPage() {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState('');
 
-  const params = new URLSearchParams();
-  params.set('page', String(page));
-  params.set('size', '10');
-  if (search) {
-    params.set('search', search);
-  }
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['products', page, search],
-    queryFn: () => fetchProducts(params),
-  });
+  const { data, isLoading } = useInventory(page, search);
 
   const table = useReactTable({
     data: data?.content ? [...data.content] : [],

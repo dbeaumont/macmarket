@@ -15,7 +15,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   MAC_PRO: 'Mac Pro',
 };
 
-export function ProductCard({ product }: { product: Product }) {
+interface ProductCardProps {
+  readonly product: Product;
+}
+
+export function ProductCard({ product }: ProductCardProps) {
   const { addItem } = useCartStore();
   const available = product.stockQuantity - product.reservedQuantity;
 

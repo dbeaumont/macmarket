@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from 'react-oidc-context';
 import { useEffect } from 'react';
 import { oidcConfig } from '@/lib/auth';
 import { setTokenProvider } from '@/lib/api';
+import { useCartSync } from '@/hooks/use-cart-sync';
 import { ShopHeader } from '@/components/layout/ShopHeader';
 import { Footer } from '@/components/layout/Footer';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -44,12 +45,18 @@ function TokenSync() {
   return null;
 }
 
+function CartSync() {
+  useCartSync();
+  return null;
+}
+
 export default function App() {
   return (
     <AuthProvider {...oidcConfig}>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <TokenSync />
+          <CartSync />
           <GuestCartMerge />
           <div className="flex min-h-screen flex-col">
             <ShopHeader />
