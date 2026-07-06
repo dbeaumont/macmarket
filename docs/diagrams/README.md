@@ -4,7 +4,7 @@ Cette section regroupe les vues DDD par bounded context métier du backend.
 
 ## Domaines documentés
 
-- [Catalog](./catalog-domain.md)
+- [Catalog](./catalog-domain.md) ([diagramme de classes détaillé](./catalog-domain-classes.md))
 - [Cart](./cart-domain.md)
 - [Order](./order-domain.md)
 - [Payment](./payment-domain.md)

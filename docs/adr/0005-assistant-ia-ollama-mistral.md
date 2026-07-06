@@ -4,6 +4,8 @@
 
 Accepte
 
+> **Mise a jour (2026-07-06)** : le modele configure par defaut (`OLLAMA_MODEL`) est passe de `mistral` a **`qwen2.5:3b`** (voir commit "passage au model LLM qwen2.5:3b"). La decision d'utiliser Ollama en local via Spring AI reste inchangee ; seul le modele par defaut differe desormais des sections "Decision" et "Consequences" ci-dessous, conservees telles quelles pour l'historique de la decision. Le modele reste configurable via la variable d'environnement `OLLAMA_MODEL`.
+
 ## Contexte
 
 MacMarket souhaite proposer un assistant conversationnel dans la boutique pour aider les clients a choisir un Mac. L'assistant doit :

@@ -1,4 +1,0 @@
-registry=https://registry.saas.cagip.group.gca/artifactory/api/npm/calf-pic-npm-virtual/
-always-auth=true
-strict-ssl=false
-//registry.saas.cagip.group.gca/artifactory/api/npm/calf-pic-npm-virtual/:_authToken=${NPM_TOKEN}

@@ -2,12 +2,12 @@
 
 ## Vue synthétique DDD + Modulith
 
-Le module Assistant expose un assistant conversationnel IA (via Spring AI + Ollama/Mistral). Il maintient une mémoire de conversation par session (Caffeine cache) et enrichit les réponses avec le contexte du catalogue produit. Les ports d'intégration (`LlmClient`, `ConversationMemoryPort`, `CatalogContextProvider`) sont définis dans la couche Application — c'est le point d'extension vers l'infrastructure.
+Le module Assistant expose un assistant conversationnel IA (via Spring AI + Ollama, modèle configuré par `OLLAMA_MODEL` — `qwen2.5:3b` par défaut). Il maintient une mémoire de conversation par session (Caffeine cache) et enrichit les réponses avec le contexte du catalogue produit. Les ports d'intégration (`LlmClient`, `ConversationMemoryPort`, `CatalogContextProvider`) sont définis dans la couche Application — c'est le point d'extension vers l'infrastructure.
 
 ```mermaid
 flowchart TB
     subgraph EXT["Intégrations externes"]
-        LLM["Ollama / Mistral\n[Spring AI]"]
+        LLM["Ollama / qwen2.5:3b\n[Spring AI]"]
         CatalogSvc["catalog:\nCatalogQueryService\n[appel direct]"]
     end
 

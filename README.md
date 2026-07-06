@@ -1,13 +1,13 @@
 # MacMarket
 
-Marketplace e-commerce pour Mac, construite avec Spring Boot + Spring Modulith, React, PostgreSQL, Keycloak et un assistant IA (Ollama + Mistral).
+Marketplace e-commerce pour Mac, construite avec Spring Boot + Spring Modulith, React, PostgreSQL, Keycloak et un assistant IA (Ollama + qwen2.5:3b).
 
 ## Prerequis
 
 - **Docker Desktop** (>= 4.30) avec Docker Compose v2
 - **Java 25+** (dev local uniquement)
 - **Node.js 22+** (dev local uniquement)
-- **~8 Go disque** pour le modele Mistral 7B (telecharge automatiquement)
+- **Espace disque** pour le modele LLM configure (`OLLAMA_MODEL`, telecharge automatiquement)
 
 ## Lancement rapide
 
@@ -15,7 +15,7 @@ Marketplace e-commerce pour Mac, construite avec Spring Boot + Spring Modulith, 
 make up
 ```
 
-Premier lancement : ~5 min (pull du modele Mistral).
+Premier lancement : quelques minutes (pull du modele `OLLAMA_MODEL`, `qwen2.5:3b` par defaut).
 
 | Service | URL |
 |---------|-----|
@@ -61,7 +61,7 @@ make clean          # tout nettoyer
 - **Backend** : Java 25, Spring Boot 4.1, Spring Modulith 2.0.5, Spring AI 2.0
 - **Frontend** : 2 apps React (boutique + backoffice), Vite, TypeScript, Tailwind CSS v4, shadcn/ui
 - **Auth** : Keycloak (OAuth2/OIDC, PKCE), 3 roles (CUSTOMER, MANAGER, ADMIN)
-- **IA** : Ollama + Mistral 7B, Spring AI ChatClient, streaming SSE
+- **IA** : Ollama + qwen2.5:3b, Spring AI ChatClient, streaming SSE
 - **DB** : PostgreSQL 17, Flyway migrations
 - **Email** : Spring Mail + Thymeleaf + Mailpit (dev)
 - **PDF** : Apache PDFBox (factures dans le module order)
@@ -86,7 +86,7 @@ graph TB
     end
 
     PG[("PostgreSQL :5432")]
-    OLL["Ollama Mistral :11434"]
+    OLL["Ollama qwen2.5:3b :11434"]
     MAIL["Mailpit :1025"]
 
     SHOP -- "REST+SSE JWT" --> backend

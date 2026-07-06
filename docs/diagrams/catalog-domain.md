@@ -83,3 +83,5 @@ Presentation → Application → Domain ← Infrastructure
 ```
 
 Le domaine ne connaît ni Spring, ni JPA. L'infrastructure implémente les ports définis dans le domaine (`ProductRepository`, `DomainEventPublisher`).
+
+Pour une vue détaillée classe par classe (attributs, méthodes, légende de couleurs par rôle DDD), voir [catalog-domain-classes.md](./catalog-domain-classes.md).

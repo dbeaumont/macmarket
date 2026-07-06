@@ -40,7 +40,7 @@ graph TB
     end
 
     PG[("PostgreSQL 17 :5432")]
-    OLL["Ollama Mistral 7B :11434"]
+    OLL["Ollama qwen2.5:3b :11434"]
     MAIL["Mailpit SMTP :1025"]
 
     SHOP -- "REST+SSE JWT" --> SEC
@@ -360,7 +360,7 @@ graph LR
         EXTRACT["ProductSuggestionExtractor"]
     end
 
-    OLLAMA["Ollama Mistral 7B"]
+    OLLAMA["Ollama qwen2.5:3b"]
 
     CHAT -- "POST /assistant/chat" --> CTRL
     CTRL --> SVC2
@@ -409,7 +409,7 @@ L application est conteneurisee via Docker Compose avec 7 services :
 | frontend-shop | Build local Dockerfile | 3000 | HTTP / |
 | frontend-admin | Build local Dockerfile | 3001 | HTTP / |
 
-Le service ollama-init est ephemere : il telecharge le modele Mistral au premier lancement puis s arrete.
+Le service ollama-init est ephemere : il telecharge le modele configure (`OLLAMA_MODEL`, `qwen2.5:3b` par defaut) au premier lancement puis s arrete.
 
 ### Profils Spring
 

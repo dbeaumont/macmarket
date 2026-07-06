@@ -11,7 +11,7 @@ Ces instructions s'appliquent à tout développement dans ce projet. Si une règ
 - **Frontend** : React (ADR-0006) — pas d'Angular dans ce projet
 - **Backend** : Java Spring Boot avec architecture DDD hexagonale (ADR-0002)
 - **Auth** : Keycloak OAuth2/OIDC (ADR-0003)
-- **IA** : Ollama / Mistral (ADR-0005)
+- **IA** : Ollama / qwen2.5:3b (ADR-0005)
 - **Paiement** : simulé (ADR-0007)
 - **Structure** : monolithe modulaire Spring Modulith (ADR-0001)
 
