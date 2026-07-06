@@ -3,12 +3,14 @@
         build build-backend build-shop build-admin \
         test test-modularity test-frontend \
         db-reset db-shell \
-        ollama-status ollama-logs ollama-pull \
+        ollama-status ollama-logs ollama-pull ollama-ensure \
         clean reset
 
 COMPOSE := docker compose
 COMPOSE_DEV := $(COMPOSE) -f docker-compose.yml -f docker-compose.dev.yml
 INFRA_SERVICES := postgres keycloak ollama ollama-init mailpit
+-include .env
+export
 
 help: ## Afficher cette aide
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -30,6 +32,7 @@ init: ## Initialiser le projet (creer .env, dossiers data)
 
 up: init ## Lancer toute la stack (7 services)
 	$(COMPOSE) up -d
+	@$(MAKE) --no-print-directory ollama-ensure
 	@echo ""
 	@echo "✅ Stack demarree"
 	@echo "   Boutique :   http://localhost:$(or $(FRONTEND_SHOP_PORT),3000)"
@@ -156,14 +159,28 @@ db-shell: ## Ouvrir un shell psql dans le container postgres
 
 # === Ollama / LLM ===
 
-ollama-status: ## Verifier le statut du modele Ollama
+ollama-ensure: ## Telecharger le modele LLM si absent ($(OLLAMA_MODEL))
+	@echo "⏳ Verification du modele $(OLLAMA_MODEL)..."
+	@until $(COMPOSE) exec -T ollama ollama list > /dev/null 2>&1; do \
+		printf "   Attente d'Ollama...\n"; sleep 3; \
+	done
+	@if $(COMPOSE) exec -T ollama ollama list | grep -q "$(OLLAMA_MODEL)"; then \
+		echo "✅ Modele $(OLLAMA_MODEL) deja present"; \
+	else \
+		echo "⬇️  Telechargement de $(OLLAMA_MODEL)..."; \
+		$(COMPOSE) exec -T ollama ollama pull $(OLLAMA_MODEL); \
+	fi
+
+ollama-status: ## Verifier le statut du modele Ollama (modele configure: $(OLLAMA_MODEL))
 	$(COMPOSE) exec ollama ollama list
+	@echo ""
+	@echo "Modele configure (.env) : $(OLLAMA_MODEL)"
 
 ollama-logs: ## Voir les logs du pull initial du modele
 	$(COMPOSE) logs ollama-init
 
-ollama-pull: ## Re-pull le modele Mistral manuellement
-	$(COMPOSE) exec ollama ollama pull mistral
+ollama-pull: ## Re-pull le modele LLM (OLLAMA_MODEL dans .env)
+	$(COMPOSE) exec ollama ollama pull $(OLLAMA_MODEL)
 
 # === Nettoyage ===
 
