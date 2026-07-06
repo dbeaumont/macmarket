@@ -14,7 +14,7 @@ public class OrderResponseMapper {
             .toList();
         var ship = order.getShippingInfo();
         return new OrderResponse(
-            order.getId().value(), order.getUserId(), order.getStatus().name(),
+            order.getId().value(), order.getUserId().value(), order.getStatus().name(),
             items, order.getTotal(),
             ship != null ? ship.name() : null,
             ship != null ? ship.address() : null,

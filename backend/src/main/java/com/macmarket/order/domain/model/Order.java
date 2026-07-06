@@ -6,12 +6,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.macmarket.UserId;
 import com.macmarket.order.domain.event.*;
 
 public class Order {
 
     private final OrderId id;
-    private final String userId;
+    private final UserId userId;
     private OrderStatus status;
     private final List<OrderItem> items;
     private final BigDecimal total;
@@ -19,7 +20,7 @@ public class Order {
     private final Instant createdAt;
     private final List<OrderDomainEvent> domainEvents = new ArrayList<>();
 
-    private Order(OrderId id, String userId, List<OrderItem> items, BigDecimal total,
+    private Order(OrderId id, UserId userId, List<OrderItem> items, BigDecimal total,
                   ShippingInfo shippingInfo, OrderStatus status, Instant createdAt) {
         this.id = id;
         this.userId = userId;
@@ -30,7 +31,7 @@ public class Order {
         this.createdAt = createdAt;
     }
 
-    public static Order place(String userId, List<OrderItem> items, BigDecimal total, ShippingInfo shippingInfo) {
+    public static Order place(UserId userId, List<OrderItem> items, BigDecimal total, ShippingInfo shippingInfo) {
         if (items == null || items.isEmpty()) {
             throw new OrderDomainException("Une commande doit contenir au moins un article");
         }
@@ -40,7 +41,7 @@ public class Order {
         return order;
     }
 
-    public static Order reconstitute(OrderId id, String userId, List<OrderItem> items,
+    public static Order reconstitute(OrderId id, UserId userId, List<OrderItem> items,
                                       BigDecimal total, ShippingInfo shippingInfo,
                                       OrderStatus status, Instant createdAt) {
         return new Order(id, userId, items, total, shippingInfo, status, createdAt);
@@ -83,7 +84,7 @@ public class Order {
     }
 
     public OrderId getId() { return id; }
-    public String getUserId() { return userId; }
+    public UserId getUserId() { return userId; }
     public OrderStatus getStatus() { return status; }
     public List<OrderItem> getItems() { return Collections.unmodifiableList(items); }
     public BigDecimal getTotal() { return total; }

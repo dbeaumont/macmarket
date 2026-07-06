@@ -3,6 +3,7 @@ package com.macmarket.user.presentation.rest;
 import java.util.List;
 import java.util.Map;
 
+import com.macmarket.UserId;
 import com.macmarket.user.application.service.ShippingProfileApplicationService;
 import com.macmarket.user.presentation.dto.ShippingProfileResponse;
 
@@ -39,8 +40,8 @@ class UserController {
 
     @GetMapping("/api/v1/users/me/shipping-profile")
     ResponseEntity<ShippingProfileResponse> myShippingProfile(@AuthenticationPrincipal Jwt jwt) {
-        return shippingProfileService.findByUserId(jwt.getSubject())
-            .map(profile -> ResponseEntity.ok(new ShippingProfileResponse(profile.getName(), profile.getAddress(), profile.getEmail())))
+        return shippingProfileService.findByUserId(UserId.of(jwt.getSubject()))
+            .map(profile -> ResponseEntity.ok(new ShippingProfileResponse(profile.getName(), profile.getAddress(), profile.getEmail().value())))
             .orElseGet(() -> ResponseEntity.noContent().build());
     }
 }

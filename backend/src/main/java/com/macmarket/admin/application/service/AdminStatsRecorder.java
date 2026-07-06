@@ -3,7 +3,7 @@ package com.macmarket.admin.application.service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import com.macmarket.admin.infrastructure.persistence.entity.AdminDailyStatsEntity;
+import com.macmarket.admin.infrastructure.persistence.entity.AdminDailyStatsJpaEntity;
 import com.macmarket.admin.infrastructure.persistence.repository.AdminDailyStatsJpaRepository;
 
 import org.springframework.stereotype.Service;
@@ -20,9 +20,9 @@ public class AdminStatsRecorder {
     }
 
     public void recordOrder(LocalDate date, BigDecimal orderTotal) {
-        AdminDailyStatsEntity stats = statsRepository.findByStatDate(date)
+        AdminDailyStatsJpaEntity stats = statsRepository.findByStatDate(date)
             .orElseGet(() -> {
-                AdminDailyStatsEntity newStats = new AdminDailyStatsEntity();
+                AdminDailyStatsJpaEntity newStats = new AdminDailyStatsJpaEntity();
                 newStats.setStatDate(date);
                 newStats.setOrdersCount(0);
                 newStats.setRevenue(BigDecimal.ZERO);

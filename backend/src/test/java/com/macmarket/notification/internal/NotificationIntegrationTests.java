@@ -2,6 +2,7 @@ package com.macmarket.notification.internal;
 
 import java.util.UUID;
 
+import com.macmarket.UserId;
 import com.macmarket.cart.application.service.CartApplicationService;
 import com.macmarket.catalog.application.service.CatalogQueryService;
 import com.macmarket.order.application.command.PlaceOrderCommand;
@@ -41,7 +42,7 @@ class NotificationIntegrationTests {
         var product = catalogService.findBySlug("mac-mini-m4-16-256");
         cartService.addItem(userId, product.getId().value(), 1);
 
-        placeOrderService.execute(new PlaceOrderCommand(userId, "Test User", "1 rue de Test", "notif@test.com"));
+        placeOrderService.execute(new PlaceOrderCommand(UserId.of(userId), "Test User", "1 rue de Test", "notif@test.com"));
 
         var messageCaptor = ArgumentCaptor.forClass(MimeMessage.class);
         verify(mailSender, timeout(2000)).send(messageCaptor.capture());

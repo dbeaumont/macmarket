@@ -2,6 +2,7 @@ package com.macmarket.order.infrastructure.persistence.mapper;
 
 import java.util.stream.Collectors;
 
+import com.macmarket.UserId;
 import com.macmarket.order.domain.model.*;
 import com.macmarket.order.infrastructure.persistence.entity.OrderItemJpaEntity;
 import com.macmarket.order.infrastructure.persistence.entity.OrderJpaEntity;
@@ -17,14 +18,14 @@ public class OrderPersistenceMapper {
                 i.getUnitPrice(), i.getQuantity(), i.getSubtotal()))
             .toList();
         var shipping = new ShippingInfo(e.getShippingName(), e.getShippingAddress(), e.getShippingEmail());
-        return Order.reconstitute(OrderId.of(e.getId()), e.getUserId(), items, e.getTotal(),
+        return Order.reconstitute(OrderId.of(e.getId()), UserId.of(e.getUserId()), items, e.getTotal(),
             shipping, OrderStatus.valueOf(e.getStatus()), e.getCreatedAt());
     }
 
     public OrderJpaEntity toJpa(Order order) {
         var e = new OrderJpaEntity();
         e.setId(order.getId().value());
-        e.setUserId(order.getUserId());
+        e.setUserId(order.getUserId().value());
         e.setStatus(order.getStatus().name());
         e.setTotal(order.getTotal());
         if (order.getShippingInfo() != null) {

@@ -3,7 +3,7 @@ package com.macmarket.admin.application.service;
 import java.util.List;
 import java.util.UUID;
 
-import com.macmarket.admin.infrastructure.persistence.entity.AdminOrderEntity;
+import com.macmarket.admin.infrastructure.persistence.entity.AdminOrderJpaEntity;
 import com.macmarket.admin.infrastructure.persistence.repository.AdminOrderReadRepository;
 import com.macmarket.admin.presentation.dto.AdminOrderDetailResponse;
 import com.macmarket.admin.presentation.dto.AdminOrderItemResponse;
@@ -35,7 +35,7 @@ public class AdminOrderService {
     public Page<AdminOrderResponse> findOrders(String status, int page, int size, String sort) {
         PageRequest pageRequest = buildPageRequest(page, size, sort);
 
-        Page<AdminOrderEntity> result;
+        Page<AdminOrderJpaEntity> result;
         if (status != null && !status.isBlank()) {
             result = orderReadRepository.findByStatusOrderByCreatedAtDesc(status, pageRequest);
         } else {
@@ -47,7 +47,7 @@ public class AdminOrderService {
 
     @Transactional(readOnly = true)
     public AdminOrderDetailResponse findOrderById(UUID id) {
-        AdminOrderEntity entity = orderReadRepository.findById(id)
+        AdminOrderJpaEntity entity = orderReadRepository.findById(id)
             .orElseThrow(() -> new OrderNotFoundException(OrderId.of(id)));
 
         var items = entity.getItems().stream()
@@ -77,7 +77,7 @@ public class AdminOrderService {
             .toList();
     }
 
-    private AdminOrderResponse toOrderResponse(AdminOrderEntity entity) {
+    private AdminOrderResponse toOrderResponse(AdminOrderJpaEntity entity) {
         return new AdminOrderResponse(
             entity.getId(), entity.getUserId(), entity.getStatus(), entity.getTotal(),
             entity.getItems().size(), entity.getShippingName(), entity.getShippingAddress(),

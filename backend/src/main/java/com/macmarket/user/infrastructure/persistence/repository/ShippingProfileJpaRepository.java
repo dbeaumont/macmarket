@@ -2,6 +2,7 @@ package com.macmarket.user.infrastructure.persistence.repository;
 
 import java.util.Optional;
 
+import com.macmarket.UserId;
 import com.macmarket.user.domain.model.ShippingProfile;
 import com.macmarket.user.domain.repository.ShippingProfileRepository;
 import com.macmarket.user.infrastructure.persistence.mapper.ShippingProfilePersistenceMapper;
@@ -20,8 +21,8 @@ class ShippingProfileJpaRepository implements ShippingProfileRepository {
     }
 
     @Override
-    public Optional<ShippingProfile> findByUserId(String userId) {
-        return springData.findByUserId(userId).map(mapper::toDomain);
+    public Optional<ShippingProfile> findByUserId(UserId userId) {
+        return springData.findByUserId(userId.value()).map(mapper::toDomain);
     }
 
     @Override
@@ -31,7 +32,7 @@ class ShippingProfileJpaRepository implements ShippingProfileRepository {
             var entity = existing.get();
             entity.setName(profile.getName());
             entity.setAddress(profile.getAddress());
-            entity.setEmail(profile.getEmail());
+            entity.setEmail(profile.getEmail().value());
             springData.save(entity);
         } else {
             var entity = mapper.toJpa(profile);

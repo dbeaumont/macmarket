@@ -27,7 +27,8 @@ public class PlaceOrderService {
     }
 
     public Order execute(PlaceOrderCommand command) {
-        var cart = cartService.getCart(command.userId());
+        var cartOwnerKey = command.userId().value();
+        var cart = cartService.getCart(cartOwnerKey);
         if (cart.getItems().isEmpty()) {
             throw new OrderDomainException("Le panier est vide");
         }
@@ -43,7 +44,7 @@ public class PlaceOrderService {
 
         order.pullDomainEvents().forEach(eventPublisher::publishEvent);
 
-        cartService.clearCart(command.userId());
+        cartService.clearCart(cartOwnerKey);
 
         return order;
     }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+import com.macmarket.UserId;
 import com.macmarket.order.application.command.PlaceOrderCommand;
 import com.macmarket.order.application.service.InvoiceGenerator;
 import com.macmarket.order.application.service.OrderQueryService;
@@ -41,7 +42,7 @@ class OrderController {
     ResponseEntity<OrderResponse> placeOrder(@AuthenticationPrincipal Jwt jwt,
                                               @Valid @RequestBody PlaceOrderRequest request) {
         var command = new PlaceOrderCommand(
-            jwt.getSubject(), request.shippingName(), request.shippingAddress(), request.shippingEmail()
+            UserId.of(jwt.getSubject()), request.shippingName(), request.shippingAddress(), request.shippingEmail()
         );
         var order = placeOrderService.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseMapper.toResponse(order));
@@ -49,7 +50,7 @@ class OrderController {
 
     @GetMapping
     ResponseEntity<List<OrderResponse>> listOrders(@AuthenticationPrincipal Jwt jwt) {
-        var orders = queryService.findByUserId(jwt.getSubject()).stream()
+        var orders = queryService.findByUserId(UserId.of(jwt.getSubject())).stream()
             .map(responseMapper::toResponse).toList();
         return ResponseEntity.ok(orders);
     }

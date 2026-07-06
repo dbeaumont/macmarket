@@ -3,6 +3,7 @@ package com.macmarket.order.application.service;
 import java.util.List;
 import java.util.UUID;
 
+import com.macmarket.UserId;
 import com.macmarket.order.domain.model.Order;
 import com.macmarket.order.domain.model.OrderId;
 import com.macmarket.order.domain.model.OrderNotFoundException;
@@ -32,7 +33,7 @@ public class OrderQueryService {
             .orElseThrow(() -> new OrderNotFoundException(id));
     }
 
-    public List<Order> findByUserId(String userId) {
+    public List<Order> findByUserId(UserId userId) {
         return orderRepository.findByUserId(userId);
     }
 }

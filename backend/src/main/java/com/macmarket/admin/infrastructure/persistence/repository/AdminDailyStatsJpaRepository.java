@@ -4,13 +4,13 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
-import com.macmarket.admin.infrastructure.persistence.entity.AdminDailyStatsEntity;
+import com.macmarket.admin.infrastructure.persistence.entity.AdminDailyStatsJpaEntity;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AdminDailyStatsJpaRepository extends JpaRepository<AdminDailyStatsEntity, LocalDate> {
+public interface AdminDailyStatsJpaRepository extends JpaRepository<AdminDailyStatsJpaEntity, LocalDate> {
 
-    Optional<AdminDailyStatsEntity> findByStatDate(LocalDate statDate);
+    Optional<AdminDailyStatsJpaEntity> findByStatDate(LocalDate statDate);
 
-    List<AdminDailyStatsEntity> findByStatDateBetweenOrderByStatDateAsc(LocalDate start, LocalDate end);
+    List<AdminDailyStatsJpaEntity> findByStatDateBetweenOrderByStatDateAsc(LocalDate start, LocalDate end);
 }

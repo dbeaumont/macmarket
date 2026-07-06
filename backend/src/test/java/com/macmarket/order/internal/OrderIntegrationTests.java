@@ -2,6 +2,7 @@ package com.macmarket.order.internal;
 
 import java.util.UUID;
 
+import com.macmarket.UserId;
 import com.macmarket.cart.application.service.CartApplicationService;
 import com.macmarket.catalog.application.service.CatalogQueryService;
 import com.macmarket.order.application.command.PlaceOrderCommand;
@@ -36,7 +37,7 @@ class OrderIntegrationTests {
         cartService.addItem(userId, product.getId().value(), 2);
 
         var order = placeOrderService.execute(
-            new PlaceOrderCommand(userId, "Test User", "42 rue de Paris", "test@test.com"));
+            new PlaceOrderCommand(UserId.of(userId), "Test User", "42 rue de Paris", "test@test.com"));
 
         assertThat(order.getId()).isNotNull();
         assertThat(order.getItems()).hasSize(1);
@@ -52,7 +53,7 @@ class OrderIntegrationTests {
     void shouldRejectOrderWithEmptyCart() {
         var emptyUser = "empty-" + UUID.randomUUID();
         assertThatThrownBy(() ->
-            placeOrderService.execute(new PlaceOrderCommand(emptyUser, "Test", "Addr", "e@e.com"))
+            placeOrderService.execute(new PlaceOrderCommand(UserId.of(emptyUser), "Test", "Addr", "e@e.com"))
         ).hasMessageContaining("panier est vide");
     }
 
@@ -60,9 +61,9 @@ class OrderIntegrationTests {
     void shouldListOrdersByUser() {
         var product = catalogService.findBySlug("mac-mini-m4-16-512");
         cartService.addItem(userId, product.getId().value(), 1);
-        placeOrderService.execute(new PlaceOrderCommand(userId, "Test", "Addr", "e@e.com"));
+        placeOrderService.execute(new PlaceOrderCommand(UserId.of(userId), "Test", "Addr", "e@e.com"));
 
-        var orders = orderQueryService.findByUserId(userId);
+        var orders = orderQueryService.findByUserId(UserId.of(userId));
         assertThat(orders).isNotEmpty();
     }
 
@@ -73,7 +74,7 @@ class OrderIntegrationTests {
         cartService.addItem(user, product.getId().value(), 1);
 
         var order = placeOrderService.execute(
-            new PlaceOrderCommand(user, "Pay Test", "123 Ave", "pay@test.com"));
+            new PlaceOrderCommand(UserId.of(user), "Pay Test", "123 Ave", "pay@test.com"));
 
         Thread.sleep(500);
 

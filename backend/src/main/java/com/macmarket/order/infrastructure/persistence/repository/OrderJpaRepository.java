@@ -3,6 +3,7 @@ package com.macmarket.order.infrastructure.persistence.repository;
 import java.util.List;
 import java.util.Optional;
 
+import com.macmarket.UserId;
 import com.macmarket.order.domain.model.Order;
 import com.macmarket.order.domain.model.OrderId;
 import com.macmarket.order.domain.repository.OrderRepository;
@@ -45,8 +46,8 @@ class OrderJpaRepository implements OrderRepository {
     }
 
     @Override
-    public List<Order> findByUserId(String userId) {
-        return springData.findByUserIdOrderByCreatedAtDesc(userId).stream()
+    public List<Order> findByUserId(UserId userId) {
+        return springData.findByUserIdOrderByCreatedAtDesc(userId.value()).stream()
             .map(mapper::toDomain).toList();
     }
 }
