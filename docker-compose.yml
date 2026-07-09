@@ -54,6 +54,7 @@ services:
   ollama:
     image: ollama/ollama:latest
     container_name: macmarket-ollama
+    platform: linux/arm64   # pour mac M1/M2, sinon linux/amd64 pour les autres architectures
     ports:
       - "11434:11434"
     volumes:
@@ -110,6 +111,7 @@ services:
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://localhost:${KEYCLOAK_HTTP_PORT}/realms/macmarket
       SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_JWK_SET_URI: http://keycloak:${KEYCLOAK_HTTP_PORT}/realms/macmarket/protocol/openid-connect/certs
       SPRING_AI_OLLAMA_BASE_URL: http://ollama:11434
+      SPRING_AI_OLLAMA_CHAT_MODEL: ${OLLAMA_MODEL}
       SPRING_MAIL_HOST: mailpit
       SPRING_MAIL_PORT: 1025
     ports:
