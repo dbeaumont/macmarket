@@ -52,8 +52,10 @@ Tu es un expert en architecture Angular/TypeScript. Ta mission est de vérifier 
 - ❌ Propriétés de classe sans type explicite
 - ❌ Propriétés d'`interface` ou `type` sans `readonly`
 - ❌ `push`, `splice`, `sort`, `reverse` sur un tableau partagé
+- ❌ **Hook appelé après un `return` conditionnel** — provoque l'erreur React #310. Tous les hooks doivent être déclarés **avant** tout `return` conditionnel dans le corps du composant
 - ✅ Toutes les propriétés d'interface en `readonly`
 - ✅ `unknown` à la place de `any`, affiné avec un type guard
+- ✅ Tous les hooks en haut du composant, avant tout `if (...) return`
 
 ### Conventions de nommage
 

@@ -63,7 +63,22 @@ const updatedItems: readonly Item[] = [...items, newItem];
 - État serveur : **TanStack Query** — jamais de `useEffect` + `fetch` manuel pour du data-fetching
 - État client partagé : **Zustand**, toujours mis à jour de façon immuable — jamais de mutation directe du store
 - `useEffect` : toujours nettoyer abonnements/timers via la fonction de retour (cleanup)
+- **Règle des hooks** : tous les hooks (`useState`, `useEffect`, `useQuery`, `useMutation`, custom hooks…) doivent être appelés **inconditionnellement** au niveau racine du composant — jamais après un `return` conditionnel. Toute violation provoque l'erreur React #310 *"Rendered more hooks than during the previous render"*
 - Props typées via `interface XxxProps` en `readonly`
+
+```typescript
+// INTERDIT — hook appelé après un return conditionnel
+export function MyComponent() {
+  if (isLoading) return <Spinner />; // ← return conditionnel
+  const data = useMyHook();          // ← erreur React #310
+}
+
+// REQUIS — tous les hooks avant tout return conditionnel
+export function MyComponent() {
+  const data = useMyHook();          // ← hook en haut
+  if (isLoading) return <Spinner />; // ← return après
+}
+```
 
 ```typescript
 // REQUIS — composant fonctionnel typé
