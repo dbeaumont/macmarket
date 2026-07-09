@@ -43,12 +43,22 @@ RUN ./mvnw package -DskipTests -B -s .mvn/settings.xml
 # ─────────────────────────────────────────────────────────────────────────────
 FROM eclipse-temurin:25-jre-alpine AS runtime
 
+# Créer un utilisateur non-root dédié — le processus Java ne doit pas tourner en root
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
 WORKDIR /app
 
 # Copier uniquement le JAR produit par l'étape build (multi-stage → image minimale)
 COPY --from=build /app/target/*.jar app.jar
 
+# Basculer vers l'utilisateur non-root avant de lancer le processus
+USER appuser
+
 # Port exposé par Spring Boot (configurable via SERVER_PORT)
 EXPOSE 8080
+
+# Vérification de santé : interroge l'endpoint Actuator toutes les 30s
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD wget -qO- http://localhost:8080/actuator/health || exit 1
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

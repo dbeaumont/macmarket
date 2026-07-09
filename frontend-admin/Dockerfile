@@ -8,10 +8,10 @@ FROM node:22-alpine AS build
 WORKDIR /app
 
 # Arguments de build pour configurer le registre npm interne (ex : Artifactory)
+# ARG uniquement (pas ENV) : ces valeurs sont réservées au build et ne doivent pas
+# être persistées dans les métadonnées de l'image (évite la fuite via docker inspect)
 ARG NPM_REGISTRY_URL
 ARG NPM_REGISTRY_HOST
-ENV NPM_REGISTRY_URL=$NPM_REGISTRY_URL
-ENV NPM_REGISTRY_HOST=$NPM_REGISTRY_HOST
 
 # Copier les manifestes de dépendances avant les sources pour profiter du cache Docker :
 # cette couche est invalidée uniquement si package.json / package-lock.json changent
@@ -28,7 +28,7 @@ RUN npm run build
 # ─────────────────────────────────────────────────────────────────────────────
 # Étape 2 — Runtime : serveur nginx minimaliste (Alpine)
 # ─────────────────────────────────────────────────────────────────────────────
-FROM nginx:alpine AS runtime
+FROM nginx:1.28-alpine AS runtime
 
 # Déployer les assets compilés dans le répertoire servi par nginx
 COPY --from=build /app/dist /usr/share/nginx/html
@@ -37,3 +37,7 @@ COPY --from=build /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
+
+# Vérification de santé : nginx doit répondre sur la racine
+HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
+  CMD wget -qO- http://localhost/ || exit 1
