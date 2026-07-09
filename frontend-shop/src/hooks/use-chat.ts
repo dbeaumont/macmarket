@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 
 export interface ChatMessageData {
   readonly role: 'user' | 'assistant';
@@ -37,13 +37,78 @@ export function setChatTokenProvider(fn: () => Promise<string | undefined>): voi
   _getToken = fn;
 }
 
-export function useChat() {
-  const [messages, setMessages] = useState<readonly ChatMessageData[]>([]);
+const STORAGE_PREFIX = 'macmarket:chat';
+
+function getStorageKeys(userId: string): { readonly messagesKey: string; readonly convIdKey: string } {
+  return {
+    messagesKey: `${STORAGE_PREFIX}:messages:${userId}`,
+    convIdKey: `${STORAGE_PREFIX}:conversationId:${userId}`,
+  };
+}
+
+function loadFromStorage(userId: string): { readonly messages: readonly ChatMessageData[]; readonly conversationId: string | null } {
+  try {
+    const { messagesKey, convIdKey } = getStorageKeys(userId);
+    const rawMessages = localStorage.getItem(messagesKey);
+    const conversationId = localStorage.getItem(convIdKey);
+    const messages: readonly ChatMessageData[] = rawMessages
+      ? (JSON.parse(rawMessages) as readonly ChatMessageData[])
+      : [];
+    return { messages, conversationId };
+  } catch {
+    return { messages: [], conversationId: null };
+  }
+}
+
+function saveConversationId(userId: string, conversationId: string | null): void {
+  try {
+    const { convIdKey } = getStorageKeys(userId);
+    if (conversationId) {
+      localStorage.setItem(convIdKey, conversationId);
+    } else {
+      localStorage.removeItem(convIdKey);
+    }
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+function clearStorage(userId: string): void {
+  try {
+    const { messagesKey, convIdKey } = getStorageKeys(userId);
+    localStorage.removeItem(messagesKey);
+    localStorage.removeItem(convIdKey);
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+export function useChat(userId: string | undefined) {
+  const initialData = useRef(
+    userId ? loadFromStorage(userId) : { messages: [] as readonly ChatMessageData[], conversationId: null }
+  );
+
+  const [messages, setMessages] = useState<readonly ChatMessageData[]>(initialData.current.messages);
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
   const [suggestions, setSuggestions] = useState<readonly SuggestedProduct[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const conversationIdRef = useRef<string | null>(null);
+  const conversationIdRef = useRef<string | null>(initialData.current.conversationId);
   const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    if (!userId) return;
+    try {
+      const { messagesKey } = getStorageKeys(userId);
+      const toSave = messages.filter(m => !(m.role === 'assistant' && m.content === ''));
+      if (toSave.length > 0) {
+        localStorage.setItem(messagesKey, JSON.stringify(toSave));
+      } else {
+        localStorage.removeItem(messagesKey);
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, [userId, messages]);
 
   const sendMessage = useCallback(async (message: string): Promise<void> => {
     if (isStreaming || !message.trim()) return;
@@ -129,6 +194,7 @@ export function useChat() {
               case 'done': {
                 const doneData = parsed as DonePayload;
                 conversationIdRef.current = doneData.conversationId;
+                if (userId) saveConversationId(userId, doneData.conversationId);
                 break;
               }
               case 'error': {
@@ -157,7 +223,7 @@ export function useChat() {
       setIsStreaming(false);
       abortRef.current = null;
     }
-  }, [isStreaming]);
+  }, [isStreaming, userId]);
 
   const clearConversation = useCallback((): void => {
     if (conversationIdRef.current) {
@@ -177,7 +243,8 @@ export function useChat() {
     setSuggestions([]);
     setError(null);
     conversationIdRef.current = null;
-  }, []);
+    if (userId) clearStorage(userId);
+  }, [userId]);
 
   const stopStreaming = useCallback((): void => {
     abortRef.current?.abort();

@@ -1,40 +1,25 @@
 import { useEffect, useRef } from 'react';
 import { X, Trash2, Bot } from 'lucide-react';
-import { useChat, setChatTokenProvider } from '@/hooks/use-chat';
 import { useAuth } from 'react-oidc-context';
+import type { ChatMessageData, SuggestedProduct } from '@/hooks/use-chat';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { ProductSuggestion } from './ProductSuggestion';
 
 interface Props {
   readonly onClose: () => void;
+  readonly messages: readonly ChatMessageData[];
+  readonly isStreaming: boolean;
+  readonly suggestions: readonly SuggestedProduct[];
+  readonly error: string | null;
+  readonly sendMessage: (message: string) => Promise<void>;
+  readonly clearConversation: () => void;
+  readonly stopStreaming: () => void;
 }
 
-export function ChatPanel({ onClose }: Props) {
+export function ChatPanel({ onClose, messages, isStreaming, suggestions, error, sendMessage, clearConversation, stopStreaming }: Props) {
   const auth = useAuth();
-  const {
-    messages,
-    isStreaming,
-    suggestions,
-    error,
-    sendMessage,
-    clearConversation,
-    stopStreaming,
-  } = useChat();
   const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setChatTokenProvider(async () => {
-      if (auth.user?.expired) {
-        try {
-          await auth.signinSilent();
-        } catch {
-          /* ignore */
-        }
-      }
-      return auth.user?.access_token;
-    });
-  }, [auth]);
 
   useEffect(() => {
     if (scrollRef.current) {

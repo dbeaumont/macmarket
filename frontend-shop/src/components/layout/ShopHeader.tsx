@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from 'react-oidc-context';
 import { ShoppingCart, Apple, User, LogOut, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { signout } from '@/lib/auth';
 import { useCartStore } from '@/stores/cart-store';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 
@@ -71,7 +72,7 @@ export function ShopHeader() {
                   <User className="h-4 w-4" />
                   <span className="hidden sm:inline">{auth.user?.profile?.name || 'Compte'}</span>
                 </Link>
-                <Button variant="ghost" size="sm" onClick={() => auth.signoutRedirect()} className="text-muted-foreground">
+                <Button variant="ghost" size="sm" onClick={() => void signout(auth)} className="text-muted-foreground">
                   <LogOut className="h-4 w-4" />
                 </Button>
               </div>
