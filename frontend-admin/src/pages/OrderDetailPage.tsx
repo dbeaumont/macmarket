@@ -1,9 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useOrderDetail } from '@/hooks/use-order-detail';
+import { useInvoiceDownload } from '@/hooks/use-invoice-download';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, FileDown, Loader2 } from 'lucide-react';
+
+const INVOICE_ELIGIBLE_STATUSES = new Set(['PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED']);
 
 function formatCurrency(value: number): string {
   return value.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
@@ -26,6 +29,7 @@ export function OrderDetailPage() {
   const { id } = useParams<{ readonly id: string }>();
   const navigate = useNavigate();
   const { order, isLoading, newStatus, setNewStatus, statusMutation } = useOrderDetail(id);
+  const invoiceDownload = useInvoiceDownload();
 
   if (isLoading) {
     return (
@@ -46,14 +50,29 @@ export function OrderDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/orders')}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold">Commande</h1>
-          <p className="text-sm text-muted-foreground font-mono">{order.id}</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" size="icon" onClick={() => navigate('/orders')}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold">Commande</h1>
+            <p className="text-sm text-muted-foreground font-mono">{order.id}</p>
+          </div>
         </div>
+        {INVOICE_ELIGIBLE_STATUSES.has(order.status) && (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={invoiceDownload.isPending}
+            onClick={() => invoiceDownload.mutate(order.id)}
+          >
+            {invoiceDownload.isPending
+              ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              : <FileDown className="mr-2 h-4 w-4" />}
+            {invoiceDownload.isPending ? 'Téléchargement...' : 'Facture PDF'}
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

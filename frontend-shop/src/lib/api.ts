@@ -151,3 +151,21 @@ export function fetchPaymentStatus(orderId: string): Promise<PaymentResponse> {
 export function mergeGuestCart(guestToken: string): Promise<Cart> {
   return apiFetch('/cart/merge', { method: 'POST', body: JSON.stringify({ guestToken }) });
 }
+
+export async function fetchInvoiceBlob(orderId: string): Promise<Blob> {
+  const headers: Record<string, string> = {};
+  if (_getToken) {
+    const token = await _getToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+  }
+  const res = await fetch(`${API_BASE}/orders/${orderId}/invoice`, { headers });
+  if (!res.ok) {
+    const body: unknown = await res.json().catch(() => ({}));
+    const message =
+      typeof body === 'object' && body !== null && 'message' in body
+        ? String((body as { readonly message: string }).message)
+        : `API error ${res.status}`;
+    throw new Error(message);
+  }
+  return res.blob();
+}

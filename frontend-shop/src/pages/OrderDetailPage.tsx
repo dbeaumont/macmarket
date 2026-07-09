@@ -1,9 +1,13 @@
 import { useParams, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchOrder, fetchPaymentStatus } from '@/lib/api';
+import { useInvoiceDownload } from '@/hooks/use-invoice-download';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, XCircle, Clock, Loader2 } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Loader2, FileDown } from 'lucide-react';
+
+const INVOICE_ELIGIBLE_STATUSES = new Set(['PAID', 'PROCESSING', 'SHIPPED', 'DELIVERED']);
 
 const STATUS_CONFIG: Record<string, { readonly label: string; readonly variant: 'default' | 'secondary' | 'destructive'; readonly icon: typeof CheckCircle }> = {
   PENDING_PAYMENT: { label: 'En attente de paiement', variant: 'secondary', icon: Clock },
@@ -36,6 +40,8 @@ export function OrderDetailPage() {
     retry: false,
   });
 
+  const invoiceDownload = useInvoiceDownload();
+
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -49,6 +55,7 @@ export function OrderDetailPage() {
 
   const statusInfo = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.PENDING_PAYMENT;
   const StatusIcon = statusInfo.icon;
+  const canDownloadInvoice = INVOICE_ELIGIBLE_STATUSES.has(order.status);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-2xl">
@@ -61,10 +68,27 @@ export function OrderDetailPage() {
 
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Commande</h1>
-        <Badge variant={statusInfo.variant} className="flex items-center gap-1.5 px-3 py-1">
-          <StatusIcon className="h-4 w-4" />
-          {statusInfo.label}
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge variant={statusInfo.variant} className="flex items-center gap-1.5 px-3 py-1">
+            <StatusIcon className="h-4 w-4" />
+            {statusInfo.label}
+          </Badge>
+          {canDownloadInvoice && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={invoiceDownload.isPending}
+              onClick={() => invoiceDownload.mutate(order.id)}
+            >
+              {invoiceDownload.isPending
+                ? <Loader2 className="h-4 w-4 animate-spin" />
+                : <FileDown className="h-4 w-4" />}
+              <span className="ml-1.5">
+                {invoiceDownload.isPending ? 'Téléchargement...' : 'Facture PDF'}
+              </span>
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="space-y-4">
