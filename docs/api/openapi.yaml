@@ -1,0 +1,1775 @@
+openapi: "3.0.3"
+info:
+  title: "MacMarket API"
+  version: "0.0.1-SNAPSHOT"
+  description: |
+    API REST du backend MacMarket — marketplace de produits Apple/tech avec
+    architecture DDD hexagonale (Spring Modulith). Authentification via
+    Keycloak OAuth2/OIDC (JWT Bearer).
+  contact:
+    name: "Équipe MacMarket"
+
+servers:
+  - url: http://localhost:8080
+    description: Développement local
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Catalogue
+    description: Produits et catégories (accès public + administration)
+  - name: Panier
+    description: Gestion du panier (visiteur ou utilisateur connecté)
+  - name: Commandes
+    description: Passer et consulter ses commandes
+  - name: Paiements
+    description: Consultation de l'état d'un paiement
+  - name: Utilisateurs
+    description: Profil de l'utilisateur connecté
+  - name: Assistant IA
+    description: Chatbot IA en streaming SSE
+  - name: Admin — Commandes
+    description: Gestion des commandes (back-office)
+  - name: Admin — Clients
+    description: Consultation des clients (back-office)
+  - name: Admin — Tableau de bord
+    description: KPIs et métriques (back-office)
+  - name: Admin — Statistiques
+    description: Statistiques détaillées par type (back-office, ROLE_ADMIN)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PATHS
+# ─────────────────────────────────────────────────────────────────────────────
+paths:
+
+  # ── Catalogue ──────────────────────────────────────────────────────────────
+
+  /api/v1/products:
+    get:
+      tags: [Catalogue]
+      summary: Lister les produits actifs
+      operationId: listProducts
+      security: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 12
+        - name: sort
+          in: query
+          schema:
+            type: string
+            default: "createdAt,desc"
+            example: "price,asc"
+        - name: category
+          in: query
+          schema:
+            $ref: '#/components/schemas/ProductCategory'
+        - name: search
+          in: query
+          schema:
+            type: string
+            example: "MacBook"
+        - name: minPrice
+          in: query
+          schema:
+            type: number
+            format: decimal
+            example: 500
+        - name: maxPrice
+          in: query
+          schema:
+            type: number
+            format: decimal
+            example: 3000
+      responses:
+        "200":
+          description: Page de produits
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductPage'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/products/{slug}:
+    get:
+      tags: [Catalogue]
+      summary: Obtenir un produit par son slug
+      operationId: getProductBySlug
+      security: []
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "macbook-pro-m3-14"
+      responses:
+        "200":
+          description: Produit trouvé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/categories:
+    get:
+      tags: [Catalogue]
+      summary: Lister les catégories avec leur nombre de produits
+      operationId: listCategories
+      security: []
+      responses:
+        "200":
+          description: Liste des catégories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CategoryCountResponse'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/products:
+    post:
+      tags: [Catalogue]
+      summary: Créer un produit
+      operationId: createProduct
+      x-required-roles: ["ROLE_MANAGER", "ROLE_ADMIN"]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+      responses:
+        "201":
+          description: Produit créé
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        "400":
+          $ref: '#/components/responses/ValidationError'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/products/{id}:
+    put:
+      tags: [Catalogue]
+      summary: Mettre à jour un produit
+      operationId: updateProduct
+      x-required-roles: ["ROLE_MANAGER", "ROLE_ADMIN"]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+      responses:
+        "200":
+          description: Produit mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        "400":
+          $ref: '#/components/responses/ValidationError'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Catalogue]
+      summary: Désactiver un produit
+      operationId: deleteProduct
+      x-required-roles: ["ROLE_MANAGER", "ROLE_ADMIN"]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Produit désactivé
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  # ── Panier ─────────────────────────────────────────────────────────────────
+
+  /api/v1/cart:
+    get:
+      tags: [Panier]
+      summary: Obtenir le panier courant
+      operationId: getCart
+      security:
+        - bearerAuth: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/XGuestCartToken'
+      responses:
+        "200":
+          description: Panier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        "500":
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Panier]
+      summary: Vider le panier
+      operationId: clearCart
+      security:
+        - bearerAuth: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/XGuestCartToken'
+      responses:
+        "204":
+          description: Panier vidé
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/cart/items:
+    post:
+      tags: [Panier]
+      summary: Ajouter un article au panier
+      operationId: addCartItem
+      security:
+        - bearerAuth: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/XGuestCartToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddToCartRequest'
+      responses:
+        "201":
+          description: Article ajouté, panier retourné
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        "400":
+          $ref: '#/components/responses/ValidationError'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/cart/items/{productId}:
+    put:
+      tags: [Panier]
+      summary: Mettre à jour la quantité d'un article
+      operationId: updateCartItemQuantity
+      security:
+        - bearerAuth: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/XGuestCartToken'
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateQuantityRequest'
+      responses:
+        "200":
+          description: Panier mis à jour
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        "400":
+          $ref: '#/components/responses/ValidationError'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+    delete:
+      tags: [Panier]
+      summary: Retirer un article du panier
+      operationId: removeCartItem
+      security:
+        - bearerAuth: []
+        - {}
+      parameters:
+        - $ref: '#/components/parameters/XGuestCartToken'
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: Article retiré
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/cart/merge:
+    post:
+      tags: [Panier]
+      summary: Fusionner le panier invité dans le panier de l'utilisateur connecté
+      operationId: mergeGuestCart
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MergeGuestCartRequest'
+      responses:
+        "200":
+          description: Panier fusionné
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        "400":
+          $ref: '#/components/responses/ValidationError'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  # ── Commandes ──────────────────────────────────────────────────────────────
+
+  /api/v1/orders:
+    post:
+      tags: [Commandes]
+      summary: Passer une commande depuis le panier courant
+      operationId: placeOrder
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaceOrderRequest'
+      responses:
+        "201":
+          description: Commande créée
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        "400":
+          $ref: '#/components/responses/ValidationError'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "422":
+          $ref: '#/components/responses/DomainError'
+        "500":
+          $ref: '#/components/responses/InternalError'
+    get:
+      tags: [Commandes]
+      summary: Lister les commandes de l'utilisateur connecté
+      operationId: listMyOrders
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste des commandes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/orders/{id}:
+    get:
+      tags: [Commandes]
+      summary: Obtenir le détail d'une commande
+      operationId: getOrder
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Commande
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/orders/{id}/invoice:
+    get:
+      tags: [Commandes]
+      summary: Télécharger la facture PDF d'une commande
+      operationId: downloadInvoice
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Facture PDF
+          headers:
+            Content-Disposition:
+              schema:
+                type: string
+                example: "attachment; filename=facture-550e8400.pdf"
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  # ── Paiements ──────────────────────────────────────────────────────────────
+
+  /api/v1/payments/order/{orderId}:
+    get:
+      tags: [Paiements]
+      summary: Obtenir le paiement associé à une commande
+      operationId: getPaymentByOrderId
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Paiement
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  # ── Utilisateurs ───────────────────────────────────────────────────────────
+
+  /api/v1/users/me:
+    get:
+      tags: [Utilisateurs]
+      summary: Obtenir le profil de l'utilisateur connecté
+      operationId: getMe
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Profil utilisateur
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/users/me/shipping-profile:
+    get:
+      tags: [Utilisateurs]
+      summary: Obtenir le profil de livraison de l'utilisateur
+      operationId: getMyShippingProfile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Profil de livraison
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShippingProfileResponse'
+        "204":
+          description: Aucun profil de livraison enregistré
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  # ── Assistant IA ───────────────────────────────────────────────────────────
+
+  /api/v1/assistant/chat:
+    post:
+      tags: [Assistant IA]
+      summary: Envoyer un message au chatbot (réponse SSE en streaming)
+      operationId: assistantChat
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        "200":
+          description: Flux SSE de tokens générés par le modèle
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: |
+                  Flux d'événements SSE. Chaque événement est un fragment de réponse.
+                  En cas d'erreur, un événement `error` est émis avec
+                  `{"content": "L'assistant est temporairement indisponible"}`.
+              example: |
+                data: {"content":"Bonjour"}
+
+                data: {"content":" ! Je peux vous aider."}
+
+                data: [DONE]
+        "400":
+          $ref: '#/components/responses/ValidationError'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/assistant/conversations/{id}:
+    delete:
+      tags: [Assistant IA]
+      summary: Supprimer l'historique d'une conversation
+      operationId: deleteConversation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "conv-abc123"
+      responses:
+        "204":
+          description: Conversation supprimée
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  # ── Admin — Commandes ──────────────────────────────────────────────────────
+
+  /api/v1/admin/orders:
+    get:
+      tags: [Admin — Commandes]
+      summary: Lister toutes les commandes (back-office)
+      operationId: adminListOrders
+      x-required-roles: ["ROLE_MANAGER", "ROLE_ADMIN"]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/OrderStatus'
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          schema:
+            type: string
+            default: "createdAt,desc"
+      responses:
+        "200":
+          description: Page de commandes
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminOrderPage'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/orders/{id}:
+    get:
+      tags: [Admin — Commandes]
+      summary: Obtenir le détail d'une commande (back-office)
+      operationId: adminGetOrder
+      x-required-roles: ["ROLE_MANAGER", "ROLE_ADMIN"]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Détail de la commande
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminOrderDetailResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/orders/{id}/status:
+    put:
+      tags: [Admin — Commandes]
+      summary: Mettre à jour le statut d'une commande
+      operationId: adminUpdateOrderStatus
+      x-required-roles: ["ROLE_MANAGER", "ROLE_ADMIN"]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStatusRequest'
+      responses:
+        "204":
+          description: Statut mis à jour
+        "400":
+          $ref: '#/components/responses/ValidationError'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "422":
+          $ref: '#/components/responses/DomainError'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  # ── Admin — Clients ────────────────────────────────────────────────────────
+
+  /api/v1/admin/customers:
+    get:
+      tags: [Admin — Clients]
+      summary: Lister les clients (back-office)
+      operationId: adminListCustomers
+      x-required-roles: ["ROLE_MANAGER", "ROLE_ADMIN"]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: Page de clients
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPage'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  /api/v1/admin/customers/{userId}/orders:
+    get:
+      tags: [Admin — Clients]
+      summary: Lister les commandes d'un client
+      operationId: adminGetCustomerOrders
+      x-required-roles: ["ROLE_MANAGER", "ROLE_ADMIN"]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+      responses:
+        "200":
+          description: Commandes du client
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AdminOrderResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "404":
+          $ref: '#/components/responses/NotFound'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  # ── Admin — Tableau de bord ────────────────────────────────────────────────
+
+  /api/v1/admin/dashboard:
+    get:
+      tags: [Admin — Tableau de bord]
+      summary: Obtenir les KPIs du tableau de bord
+      operationId: adminGetDashboard
+      x-required-roles: ["ROLE_MANAGER", "ROLE_ADMIN"]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Données du tableau de bord
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardResponse'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+  # ── Admin — Statistiques ───────────────────────────────────────────────────
+
+  /api/v1/admin/stats/{type}:
+    get:
+      tags: [Admin — Statistiques]
+      summary: "Obtenir des statistiques par type (revenue | products | customers | orders)"
+      operationId: adminGetStats
+      x-required-roles: ["ROLE_ADMIN"]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [revenue, products, customers, orders]
+            example: "revenue"
+        - name: period
+          in: query
+          schema:
+            type: string
+            default: "30d"
+            example: "30d"
+            description: "Période d'analyse (ex: 7d, 30d, 90d)"
+      responses:
+        "200":
+          description: Statistiques selon le type demandé
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/RevenueStatsResponse'
+                  - $ref: '#/components/schemas/ProductStatsResponse'
+                  - $ref: '#/components/schemas/CustomerStatsResponse'
+                  - $ref: '#/components/schemas/OrderStatsResponse'
+        "400":
+          $ref: '#/components/responses/ValidationError'
+        "401":
+          $ref: '#/components/responses/Unauthorized'
+        "403":
+          $ref: '#/components/responses/Forbidden'
+        "500":
+          $ref: '#/components/responses/InternalError'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# COMPONENTS
+# ─────────────────────────────────────────────────────────────────────────────
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Token JWT Keycloak (Authorization: Bearer <token>)"
+
+  parameters:
+    XGuestCartToken:
+      name: X-Guest-Cart-Token
+      in: header
+      required: false
+      schema:
+        type: string
+        example: "guest-abc123xyz"
+      description: |
+        Token de panier visiteur. Obligatoire si l'utilisateur n'est pas authentifié.
+        Ignoré si un JWT valide est présent.
+
+  responses:
+    NotFound:
+      description: Ressource introuvable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "NOT_FOUND"
+            message: "Product not found"
+            status: 404
+            timestamp: "2026-07-08T10:00:00Z"
+    ValidationError:
+      description: Erreur de validation des données
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "VALIDATION_ERROR"
+            message: "shippingName: must not be blank"
+            status: 400
+            timestamp: "2026-07-08T10:00:00Z"
+    DomainError:
+      description: Violation d'une règle métier
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "DOMAIN_ERROR"
+            message: "Le panier est vide"
+            status: 422
+            timestamp: "2026-07-08T10:00:00Z"
+    Unauthorized:
+      description: Non authentifié (token absent ou expiré)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "UNAUTHORIZED"
+            message: "Full authentication is required"
+            status: 401
+            timestamp: "2026-07-08T10:00:00Z"
+    Forbidden:
+      description: Droits insuffisants
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "FORBIDDEN"
+            message: "Access denied"
+            status: 403
+            timestamp: "2026-07-08T10:00:00Z"
+    InternalError:
+      description: Erreur serveur interne
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "INTERNAL_ERROR"
+            message: "Internal server error"
+            status: 500
+            timestamp: "2026-07-08T10:00:00Z"
+
+  schemas:
+
+    # ── Énumérations ─────────────────────────────────────────────────────────
+    ProductCategory:
+      type: string
+      description: Catégorie de produit Mac
+      enum:
+        - MACBOOK_AIR
+        - MACBOOK_PRO
+        - IMAC
+        - MAC_MINI
+        - MAC_STUDIO
+        - MAC_PRO
+      example: "MACBOOK_AIR"
+
+    OrderStatus:
+      type: string
+      description: Statut d'une commande
+      enum:
+        - PENDING_PAYMENT
+        - PAID
+        - PROCESSING
+        - SHIPPED
+        - DELIVERED
+        - CANCELLED
+      example: "PAID"
+
+    PaymentStatus:
+      type: string
+      description: Statut d'un paiement
+      enum:
+        - PENDING
+        - COMPLETED
+        - FAILED
+      example: "COMPLETED"
+
+    # ── Erreur ────────────────────────────────────────────────────────────────
+    ErrorResponse:
+      type: object
+      required: [code, message, status, timestamp]
+      properties:
+        code:
+          type: string
+          example: "NOT_FOUND"
+        message:
+          type: string
+          example: "Product not found"
+        status:
+          type: integer
+          example: 404
+        timestamp:
+          type: string
+          format: date-time
+          example: "2026-07-08T10:00:00Z"
+
+    # ── Catalogue ─────────────────────────────────────────────────────────────
+    ProductResponse:
+      type: object
+      required: [id, name, slug, price, category, stockQuantity, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        name:
+          type: string
+          example: "MacBook Pro 14\" M3"
+        slug:
+          type: string
+          example: "macbook-pro-m3-14"
+        description:
+          type: string
+          example: "Le MacBook Pro le plus avancé jamais conçu."
+        shortDesc:
+          type: string
+          example: "M3, 16 Go RAM, 512 Go SSD"
+        price:
+          type: number
+          format: decimal
+          example: 2199.00
+        category:
+          $ref: '#/components/schemas/ProductCategory'
+        imageUrl:
+          type: string
+          example: "https://cdn.example.com/macbook-pro-m3.jpg"
+        stockQuantity:
+          type: integer
+          example: 25
+        reservedQuantity:
+          type: integer
+          example: 3
+        active:
+          type: boolean
+          example: true
+        specs:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            cpu: "M3"
+            ram: "16 Go"
+            storage: "512 Go SSD"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2026-01-15T09:00:00Z"
+
+    ProductPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductResponse'
+        totalElements:
+          type: integer
+          example: 48
+        totalPages:
+          type: integer
+          example: 4
+        size:
+          type: integer
+          example: 12
+        number:
+          type: integer
+          example: 0
+
+    CategoryCountResponse:
+      type: object
+      required: [category, count]
+      properties:
+        category:
+          $ref: '#/components/schemas/ProductCategory'
+        count:
+          type: integer
+          format: int64
+          example: 12
+
+    CreateProductRequest:
+      type: object
+      required: [name, slug, price, category, stockQuantity]
+      properties:
+        name:
+          type: string
+          maxLength: 200
+          example: "MacBook Pro 14\" M3"
+        slug:
+          type: string
+          maxLength: 200
+          example: "macbook-pro-m3-14"
+        description:
+          type: string
+          example: "Description détaillée du produit."
+        shortDesc:
+          type: string
+          maxLength: 500
+          example: "M3, 16 Go RAM, 512 Go SSD"
+        price:
+          type: number
+          format: decimal
+          minimum: 0.01
+          exclusiveMinimum: true
+          example: 2199.00
+        category:
+          $ref: '#/components/schemas/ProductCategory'
+        imageUrl:
+          type: string
+          maxLength: 500
+          example: "https://cdn.example.com/macbook-pro-m3.jpg"
+        stockQuantity:
+          type: integer
+          minimum: 0
+          example: 25
+        specs:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            cpu: "M3"
+            ram: "16 Go"
+
+    UpdateProductRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 200
+          example: "MacBook Pro 14\" M3 Pro"
+        description:
+          type: string
+        shortDesc:
+          type: string
+          maxLength: 500
+        price:
+          type: number
+          format: decimal
+          example: 2099.00
+        category:
+          $ref: '#/components/schemas/ProductCategory'
+        imageUrl:
+          type: string
+          maxLength: 500
+        stockQuantity:
+          type: integer
+          minimum: 0
+          example: 30
+        active:
+          type: boolean
+          example: true
+        specs:
+          type: object
+          additionalProperties:
+            type: string
+
+    # ── Panier ────────────────────────────────────────────────────────────────
+    CartResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          description: "Identifiant Keycloak (sub) ou clé invité"
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CartItemResponse'
+        total:
+          type: number
+          format: decimal
+          example: 2199.00
+
+    CartItemResponse:
+      type: object
+      properties:
+        productId:
+          type: string
+          format: uuid
+        productName:
+          type: string
+          example: "MacBook Pro 14\" M3"
+        productImage:
+          type: string
+          example: "https://cdn.example.com/macbook-pro-m3.jpg"
+        unitPrice:
+          type: number
+          format: decimal
+          example: 2199.00
+        quantity:
+          type: integer
+          example: 1
+        subtotal:
+          type: number
+          format: decimal
+          example: 2199.00
+
+    AddToCartRequest:
+      type: object
+      required: [productId, quantity]
+      properties:
+        productId:
+          type: string
+          format: uuid
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        quantity:
+          type: integer
+          minimum: 1
+          example: 1
+
+    UpdateQuantityRequest:
+      type: object
+      required: [quantity]
+      properties:
+        quantity:
+          type: integer
+          minimum: 1
+          example: 2
+
+    MergeGuestCartRequest:
+      type: object
+      required: [guestToken]
+      properties:
+        guestToken:
+          type: string
+          minLength: 8
+          maxLength: 64
+          example: "guest-abc123xyz"
+
+    # ── Commandes ─────────────────────────────────────────────────────────────
+    PlaceOrderRequest:
+      type: object
+      required: [shippingName, shippingAddress, shippingEmail]
+      properties:
+        shippingName:
+          type: string
+          example: "Alice Dupont"
+        shippingAddress:
+          type: string
+          example: "12 rue de la Paix, 75001 Paris"
+        shippingEmail:
+          type: string
+          format: email
+          example: "alice@example.com"
+
+    OrderResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderItemResponse'
+        total:
+          type: number
+          format: decimal
+          example: 2199.00
+        shippingName:
+          type: string
+          example: "Alice Dupont"
+        shippingAddress:
+          type: string
+          example: "12 rue de la Paix, 75001 Paris"
+        shippingEmail:
+          type: string
+          format: email
+          example: "alice@example.com"
+        createdAt:
+          type: string
+          format: date-time
+
+    OrderItemResponse:
+      type: object
+      properties:
+        productId:
+          type: string
+          format: uuid
+        productName:
+          type: string
+          example: "MacBook Pro 14\" M3"
+        productImage:
+          type: string
+        unitPrice:
+          type: number
+          format: decimal
+          example: 2199.00
+        quantity:
+          type: integer
+          example: 1
+        subtotal:
+          type: number
+          format: decimal
+          example: 2199.00
+
+    # ── Paiements ─────────────────────────────────────────────────────────────
+    PaymentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        orderId:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: decimal
+          example: 2199.00
+        status:
+          $ref: '#/components/schemas/PaymentStatus'
+        transactionRef:
+          type: string
+          example: "TXN-20260708-abc123"
+        failureReason:
+          type: string
+          nullable: true
+          example: null
+        createdAt:
+          type: string
+          format: date-time
+
+    # ── Utilisateurs ──────────────────────────────────────────────────────────
+    UserProfileResponse:
+      type: object
+      properties:
+        sub:
+          type: string
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        email:
+          type: string
+          format: email
+          example: "alice@example.com"
+        name:
+          type: string
+          example: "Alice Dupont"
+        preferredUsername:
+          type: string
+          example: "alice"
+        roles:
+          type: array
+          items:
+            type: string
+          example: ["default-roles-macmarket", "ROLE_USER"]
+
+    ShippingProfileResponse:
+      type: object
+      properties:
+        name:
+          type: string
+          example: "Alice Dupont"
+        address:
+          type: string
+          example: "12 rue de la Paix, 75001 Paris"
+        email:
+          type: string
+          format: email
+          example: "alice@example.com"
+
+    # ── Assistant IA ──────────────────────────────────────────────────────────
+    ChatRequest:
+      type: object
+      required: [message]
+      properties:
+        message:
+          type: string
+          example: "Quel MacBook me recommandes-tu pour le développement ?"
+        conversationId:
+          type: string
+          nullable: true
+          example: "conv-abc123"
+          description: "Identifiant de conversation pour maintenir le contexte. Null pour démarrer une nouvelle conversation."
+
+    # ── Admin — Commandes ─────────────────────────────────────────────────────
+    AdminOrderResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        total:
+          type: number
+          format: decimal
+          example: 2199.00
+        itemCount:
+          type: integer
+          example: 2
+        shippingName:
+          type: string
+        shippingAddress:
+          type: string
+        shippingEmail:
+          type: string
+          format: email
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AdminOrderDetailResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        total:
+          type: number
+          format: decimal
+        shippingName:
+          type: string
+        shippingAddress:
+          type: string
+        shippingEmail:
+          type: string
+          format: email
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminOrderItemResponse'
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AdminOrderItemResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        productName:
+          type: string
+        productImage:
+          type: string
+        unitPrice:
+          type: number
+          format: decimal
+        quantity:
+          type: integer
+        subtotal:
+          type: number
+          format: decimal
+
+    AdminOrderPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminOrderResponse'
+        totalElements:
+          type: integer
+          format: int64
+          example: 150
+        totalPages:
+          type: integer
+          example: 8
+        size:
+          type: integer
+          example: 20
+        number:
+          type: integer
+          example: 0
+
+    UpdateStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+
+    # ── Admin — Clients ───────────────────────────────────────────────────────
+    CustomerSummaryResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        orderCount:
+          type: integer
+          format: int64
+          example: 5
+        totalSpent:
+          type: number
+          format: decimal
+          example: 8750.00
+        lastOrderDate:
+          type: string
+          format: date-time
+
+    CustomerPage:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/CustomerSummaryResponse'
+        totalElements:
+          type: integer
+          format: int64
+          example: 240
+        totalPages:
+          type: integer
+          example: 12
+        size:
+          type: integer
+          example: 20
+        number:
+          type: integer
+          example: 0
+
+    # ── Admin — Tableau de bord ────────────────────────────────────────────────
+    DashboardResponse:
+      type: object
+      properties:
+        totalOrders:
+          type: integer
+          format: int64
+          example: 1250
+        totalRevenue:
+          type: number
+          format: decimal
+          example: 2850000.00
+        totalCustomers:
+          type: integer
+          format: int64
+          example: 450
+        activeProducts:
+          type: integer
+          format: int64
+          example: 87
+        lowStockCount:
+          type: integer
+          format: int64
+          example: 5
+        ordersByStatus:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+          example:
+            PENDING_PAYMENT: 45
+            PAID: 320
+            PROCESSING: 85
+            SHIPPED: 110
+            DELIVERED: 680
+            CANCELLED: 10
+        revenueChart:
+          type: array
+          items:
+            $ref: '#/components/schemas/RevenueChartPoint'
+        recentOrders:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecentOrderDto'
+        lowStockProducts:
+          type: array
+          items:
+            $ref: '#/components/schemas/LowStockProductDto'
+
+    RevenueChartPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          example: "2026-07-01"
+        revenue:
+          type: number
+          format: decimal
+          example: 95000.00
+
+    RecentOrderDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        userId:
+          type: string
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        total:
+          type: number
+          format: decimal
+          example: 2199.00
+        itemCount:
+          type: integer
+          example: 1
+        createdAt:
+          type: string
+          format: date-time
+
+    LowStockProductDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "AirPods Pro 2"
+        category:
+          type: string
+          example: "Audio"
+        price:
+          type: number
+          format: decimal
+          example: 299.00
+        stockQuantity:
+          type: integer
+          example: 3
+        reservedQuantity:
+          type: integer
+          example: 2
+        availableQuantity:
+          type: integer
+          example: 1
+
+    # ── Admin — Statistiques ──────────────────────────────────────────────────
+    RevenueStatsResponse:
+      type: object
+      properties:
+        totalRevenue:
+          type: number
+          format: decimal
+          example: 285000.00
+        averageOrderValue:
+          type: number
+          format: decimal
+          example: 228.00
+        orderCount:
+          type: integer
+          format: int64
+          example: 1250
+        chart:
+          type: array
+          items:
+            $ref: '#/components/schemas/RevenueChartPoint'
+
+    ProductStatsResponse:
+      type: object
+      properties:
+        totalProducts:
+          type: integer
+          format: int64
+          example: 100
+        activeProducts:
+          type: integer
+          format: int64
+          example: 87
+        lowStockCount:
+          type: integer
+          format: int64
+          example: 5
+        lowStockProducts:
+          type: array
+          items:
+            $ref: '#/components/schemas/LowStockProductDto'
+
+    CustomerStatsResponse:
+      type: object
+      properties:
+        totalCustomers:
+          type: integer
+          format: int64
+          example: 450
+        newCustomers:
+          type: integer
+          format: int64
+          example: 32
+        averageSpentPerCustomer:
+          type: number
+          format: decimal
+          example: 633.33
+        totalRevenue:
+          type: number
+          format: decimal
+          example: 285000.00
+
+    OrderStatsResponse:
+      type: object
+      properties:
+        totalOrders:
+          type: integer
+          format: int64
+          example: 1250
+        totalRevenue:
+          type: number
+          format: decimal
+          example: 285000.00
+        byStatus:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+          example:
+            PENDING_PAYMENT: 45
+            PAID: 320
+            PROCESSING: 85
+            SHIPPED: 110
+            DELIVERED: 680
+            CANCELLED: 10
+        chart:
+          type: array
+          items:
+            $ref: '#/components/schemas/OrderChartPoint'
+
+    OrderChartPoint:
+      type: object
+      properties:
+        date:
+          type: string
+          example: "2026-07-01"
+        count:
+          type: integer
+          format: int64
+          example: 45

@@ -1,7 +1,7 @@
 ---
 description: "Utilise cet agent pour documenter les contrats d'API REST à partir des RestControllers Spring Boot. Use when: API documentation, contrat API, OpenAPI, Swagger, endpoints REST, codes HTTP, DTOs, documentation des routes, @RestController."
 name: "API Contract Documenter"
-tools: [read, search]
+tools: [read, search, edit]
 argument-hint: "Nom du module ou du controller à documenter (ex: module order, OrderController)"
 ---
 
@@ -87,8 +87,15 @@ Générer un tableau récapitulatif de tous les endpoints :
 | ...
 ```
 
+## Emplacement du fichier généré
+
+Sauvegarder le résultat dans `docs/api/` sous la forme d'un fichier Markdown :
+- **Nommage** : `docs/api/[module]-api.md` (ex: `docs/api/order-api.md`)
+- Si le fichier existe déjà, le mettre à jour plutôt que d'en créer un nouveau
+- Créer le répertoire `docs/api/` s'il n'existe pas
+
 ## Contraintes
 - Documentation en **français**
-- NE PAS modifier le code — uniquement lire et documenter
+- NE PAS modifier le code source — uniquement lire et documenter
 - Inférer les codes HTTP à partir de `ResponseEntity` et des exceptions levées
 - Si une information est ambiguë ou manquante dans le code, le signaler avec `[À PRÉCISER]`
