@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LogOut, Mail, Shield } from 'lucide-react';
+import { signout } from '@/lib/auth';
 
 export function AccountPage() {
   const auth = useAuth();
@@ -62,7 +63,7 @@ export function AccountPage() {
             <Button
               variant="outline"
               className="w-full mt-4"
-              onClick={() => auth.signoutRedirect()}
+              onClick={() => void signout(auth)}
             >
               <LogOut className="mr-2 h-4 w-4" /> Se deconnecter
             </Button>

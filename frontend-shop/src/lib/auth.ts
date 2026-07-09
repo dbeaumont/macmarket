@@ -14,12 +14,23 @@ export const oidcConfig: AuthProviderProps = {
   onSigninCallback: () => {
     window.history.replaceState({}, document.title, window.location.pathname);
   },
+  onSignoutCallback: () => {
+    window.history.replaceState({}, document.title, '/');
+  },
 };
 
 interface KeycloakProfile {
   readonly realm_access?: {
     readonly roles?: readonly string[];
   };
+}
+
+export async function signout(auth: { readonly removeUser: () => Promise<void> }): Promise<void> {
+  await auth.removeUser();
+  const logoutUrl = new URL(`${KEYCLOAK_URL}/realms/macmarket/protocol/openid-connect/logout`);
+  logoutUrl.searchParams.set('client_id', 'macmarket-shop');
+  logoutUrl.searchParams.set('post_logout_redirect_uri', APP_URL);
+  window.location.href = logoutUrl.toString();
 }
 
 export function getUserRoles(user: User | null | undefined): readonly string[] {
