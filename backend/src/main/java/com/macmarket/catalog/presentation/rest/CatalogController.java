@@ -12,6 +12,11 @@ import com.macmarket.catalog.application.service.CreateProductService;
 import com.macmarket.catalog.application.service.UpdateProductService;
 import com.macmarket.catalog.presentation.dto.*;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
@@ -20,6 +25,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Tag(name = "Catalogue", description = "Produits et catégories — accès public + administration")
 class CatalogController {
 
     private final CatalogQueryService queryService;
@@ -37,6 +43,8 @@ class CatalogController {
         this.responseMapper = responseMapper;
     }
 
+    @Operation(summary = "Lister les produits", description = "Recherche paginée avec filtres optionnels")
+    @ApiResponse(responseCode = "200", description = "Liste paginée de produits")
     @GetMapping("/api/v1/products")
     ResponseEntity<Map<String, Object>> listProducts(
         @RequestParam(defaultValue = "0") int page,
@@ -58,12 +66,17 @@ class CatalogController {
         ));
     }
 
+    @Operation(summary = "Détail produit par slug")
+    @ApiResponse(responseCode = "200", description = "Produit trouvé")
+    @ApiResponse(responseCode = "404", description = "Produit introuvable")
     @GetMapping("/api/v1/products/{slug}")
     ResponseEntity<ProductResponse> getBySlug(@PathVariable String slug) {
         var product = queryService.findBySlug(slug);
         return ResponseEntity.ok(responseMapper.toResponse(product));
     }
 
+    @Operation(summary = "Lister les catégories avec comptage")
+    @ApiResponse(responseCode = "200", description = "Liste des catégories")
     @GetMapping("/api/v1/categories")
     ResponseEntity<List<CategoryCountResponse>> getCategories() {
         var categories = queryService.getCategories().stream()
@@ -72,6 +85,9 @@ class CatalogController {
         return ResponseEntity.ok(categories);
     }
 
+    @Operation(summary = "Créer un produit", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "201", description = "Produit créé")
+    @ApiResponse(responseCode = "403", description = "Accès refusé")
     @PostMapping("/api/v1/admin/products")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody CreateProductRequest request) {
@@ -84,6 +100,9 @@ class CatalogController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseMapper.toResponse(product));
     }
 
+    @Operation(summary = "Modifier un produit", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Produit mis à jour")
+    @ApiResponse(responseCode = "403", description = "Accès refusé")
     @PutMapping("/api/v1/admin/products/{id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     ResponseEntity<ProductResponse> updateProduct(@PathVariable UUID id, @Valid @RequestBody UpdateProductRequest request) {
@@ -96,6 +115,9 @@ class CatalogController {
         return ResponseEntity.ok(responseMapper.toResponse(product));
     }
 
+    @Operation(summary = "Supprimer un produit", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "204", description = "Produit supprimé")
+    @ApiResponse(responseCode = "403", description = "Accès refusé")
     @DeleteMapping("/api/v1/admin/products/{id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
     ResponseEntity<Void> deleteProduct(@PathVariable UUID id) {

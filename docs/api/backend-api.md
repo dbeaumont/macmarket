@@ -4,6 +4,15 @@
 > Authentification : JWT Bearer Token émis par Keycloak (sauf endpoints publics).  
 > Format d'erreur standard : voir section [Structure ErrorResponse](#structure-errorresponse).
 
+## 📘 Documentation interactive
+
+Après avoir lancé la stack (`make up` ou `make dev`), consultez la documentation **interactive** de l'API :
+
+- **Swagger UI** : http://localhost:8080/swagger-ui.html — interface graphique pour tester les endpoints
+- **OpenAPI JSON** : http://localhost:8080/v3/api-docs — spécification complète au format OpenAPI 3.0
+
+Ce document (backend-api.md) fournit une **référence statique** ; utilisez Swagger UI pour **explorer et tester** les endpoints en temps réel.
+
 ---
 
 ## Structure ErrorResponse

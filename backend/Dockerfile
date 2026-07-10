@@ -13,21 +13,26 @@ COPY pom.xml .
 COPY .mvn .mvn
 COPY mvnw .
 
-# 1. Installer openssl (nécessaire pour extraire le certificat TLS du miroir Maven)
-# 2. Importer le certificat CA du miroir dans le truststore Java (keytool)
-# 3. Pré-télécharger toutes les dépendances Maven (go-offline) → couche cachée
-RUN apk add --no-cache openssl \
+# 1. Installer openssl + ca-certificates (nécessaire pour extraire et enregistrer le CA du miroir Maven)
+# 2. Importer le certificat CA du miroir dans le truststore Java (keytool) ET le store système Alpine (wget is used by mvnw to download the wrapper JAR)
+# 3. Rediriger wrapperUrl/distributionUrl vers le miroir interne (repo1.maven.org inaccessible en entreprise)
+# 4. Pré-télécharger toutes les dépendances Maven (go-offline) → couche cachée
+RUN apk add --no-cache openssl ca-certificates \
     && MIRROR_HOST=$(echo "${MAVEN_MIRROR_URL}" | sed 's|^https://||' | cut -d'/' -f1) \
     && openssl s_client -connect "${MIRROR_HOST}" -showcerts </dev/null 2>/dev/null \
        | awk '/-----BEGIN CERTIFICATE-----/{n++; f="/tmp/ca-"n".crt"} f{print > f} /-----END CERTIFICATE-----/{f=""}' \
     && for cert in /tmp/ca-*.crt; do \
+         [ -f "${cert}" ] || break; \
          keytool -import -noprompt \
            -alias "jfrog-$(basename ${cert} .crt)" \
            -file "${cert}" \
            -keystore "${JAVA_HOME}/lib/security/cacerts" \
            -storepass changeit 2>/dev/null || true; \
+         cp "${cert}" /usr/local/share/ca-certificates/; \
        done \
+    && update-ca-certificates \
     && chmod +x mvnw \
+    && sed -i "s|https://repo1.maven.org/maven2|${MAVEN_MIRROR_URL}|g" .mvn/wrapper/maven-wrapper.properties \
     && sed -i "s|\${env.MAVEN_MIRROR_URL}|${MAVEN_MIRROR_URL}|" .mvn/settings.xml \
     && ./mvnw dependency:go-offline -B -s .mvn/settings.xml
 

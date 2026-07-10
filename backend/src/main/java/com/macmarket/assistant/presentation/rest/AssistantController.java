@@ -6,6 +6,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import com.macmarket.assistant.application.service.ChatService;
 import com.macmarket.assistant.presentation.dto.ChatRequest;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
@@ -27,6 +34,8 @@ import reactor.core.Disposable;
 @RestController
 @RequestMapping("/api/v1/assistant")
 @Validated
+@Tag(name = "Assistant IA", description = "Chatbot IA en streaming SSE")
+@SecurityRequirement(name = "bearerAuth")
 public class AssistantController {
 
     private static final Logger log = LoggerFactory.getLogger(AssistantController.class);
@@ -38,6 +47,9 @@ public class AssistantController {
         this.chatService = chatService;
     }
 
+    @Operation(summary = "Chat avec l'assistant IA — SSE streaming")
+    @ApiResponse(responseCode = "200", description = "Flux d'événements SSE",
+            content = @Content(mediaType = "text/event-stream", schema = @Schema(type = "string")))
     @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter chat(@Valid @RequestBody ChatRequest request,
                            @AuthenticationPrincipal Jwt jwt) {
@@ -89,6 +101,8 @@ public class AssistantController {
         return emitter;
     }
 
+    @Operation(summary = "Supprimer une conversation")
+    @ApiResponse(responseCode = "204", description = "Conversation supprimée", content = @Content)
     @DeleteMapping("/conversations/{id}")
     public ResponseEntity<Void> deleteConversation(@PathVariable String id) {
         chatService.clearConversation(id);

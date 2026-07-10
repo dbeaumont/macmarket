@@ -22,6 +22,8 @@ Premier lancement : quelques minutes (pull du modele `OLLAMA_MODEL`, `qwen2.5:3b
 | Boutique | http://localhost:3000 |
 | Backoffice | http://localhost:3001 |
 | Backend API | http://localhost:8080 |
+| **Documentation API** | **http://localhost:8080/swagger-ui.html** |
+| OpenAPI JSON | http://localhost:8080/v3/api-docs |
 | Keycloak | http://localhost:8180 (admin/admin) |
 | Mailpit | http://localhost:8025 |
 | Ollama | http://localhost:11434 |

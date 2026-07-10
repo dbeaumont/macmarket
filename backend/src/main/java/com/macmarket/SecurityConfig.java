@@ -28,6 +28,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/api/v1/products/**", "/api/v1/categories/**").permitAll()
                 .requestMatchers("/api/v1/admin/stats/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/admin/**").hasAnyRole("MANAGER", "ADMIN")

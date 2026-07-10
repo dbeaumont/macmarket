@@ -7,6 +7,12 @@ import com.macmarket.UserId;
 import com.macmarket.user.application.service.ShippingProfileApplicationService;
 import com.macmarket.user.presentation.dto.ShippingProfileResponse;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -14,6 +20,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@Tag(name = "Utilisateurs", description = "Profil de l'utilisateur connecté")
+@SecurityRequirement(name = "bearerAuth")
 class UserController {
 
     private final ShippingProfileApplicationService shippingProfileService;
@@ -22,6 +30,8 @@ class UserController {
         this.shippingProfileService = shippingProfileService;
     }
 
+    @Operation(summary = "Profil de l'utilisateur connecté")
+    @ApiResponse(responseCode = "200", description = "Données du profil")
     @GetMapping("/api/v1/users/me")
     Map<String, Object> me(@AuthenticationPrincipal Jwt jwt) {
         @SuppressWarnings("unchecked")
@@ -38,6 +48,9 @@ class UserController {
         );
     }
 
+    @Operation(summary = "Profil de livraison sauvegardé")
+    @ApiResponse(responseCode = "200", description = "Profil de livraison trouvé")
+    @ApiResponse(responseCode = "204", description = "Aucun profil de livraison enregistré", content = @Content)
     @GetMapping("/api/v1/users/me/shipping-profile")
     ResponseEntity<ShippingProfileResponse> myShippingProfile(@AuthenticationPrincipal Jwt jwt) {
         return shippingProfileService.findByUserId(UserId.of(jwt.getSubject()))

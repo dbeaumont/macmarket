@@ -13,6 +13,12 @@ import com.macmarket.order.presentation.dto.OrderResponse;
 import com.macmarket.order.presentation.dto.OrderResponseMapper;
 import com.macmarket.order.presentation.dto.PlaceOrderRequest;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
@@ -23,6 +29,8 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/orders")
+@Tag(name = "Commandes", description = "Passer et consulter ses commandes")
+@SecurityRequirement(name = "bearerAuth")
 class OrderController {
 
     private final PlaceOrderService placeOrderService;
@@ -38,6 +46,9 @@ class OrderController {
         this.invoiceGenerator = invoiceGenerator;
     }
 
+    @Operation(summary = "Passer une commande")
+    @ApiResponse(responseCode = "201", description = "Commande créée")
+    @ApiResponse(responseCode = "400", description = "Requête invalide")
     @PostMapping
     ResponseEntity<OrderResponse> placeOrder(@AuthenticationPrincipal Jwt jwt,
                                               @Valid @RequestBody PlaceOrderRequest request) {
@@ -48,6 +59,8 @@ class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseMapper.toResponse(order));
     }
 
+    @Operation(summary = "Mes commandes")
+    @ApiResponse(responseCode = "200", description = "Liste des commandes")
     @GetMapping
     ResponseEntity<List<OrderResponse>> listOrders(@AuthenticationPrincipal Jwt jwt) {
         var orders = queryService.findByUserId(UserId.of(jwt.getSubject())).stream()
@@ -55,12 +68,18 @@ class OrderController {
         return ResponseEntity.ok(orders);
     }
 
+    @Operation(summary = "Détail d'une commande")
+    @ApiResponse(responseCode = "200", description = "Commande trouvée")
+    @ApiResponse(responseCode = "404", description = "Commande introuvable")
     @GetMapping("/{id}")
     ResponseEntity<OrderResponse> getOrder(@AuthenticationPrincipal Jwt jwt, @PathVariable UUID id) {
         var order = queryService.findById(id);
         return ResponseEntity.ok(responseMapper.toResponse(order));
     }
 
+    @Operation(summary = "Télécharger la facture PDF")
+    @ApiResponse(responseCode = "200", description = "PDF de la facture",
+            content = @Content(mediaType = "application/pdf"))
     @GetMapping("/{id}/invoice")
     ResponseEntity<byte[]> downloadInvoice(@PathVariable UUID id) throws IOException {
         var order = queryService.findById(id);

@@ -15,3 +15,11 @@ spring:
   mail:
     host: mailpit
     port: 1025
+
+# A mettre à false en environnement de Production
+#springdoc:
+#  swagger-ui:
+#    enabled: false
+#  api-docs:
+#    enabled: false
+

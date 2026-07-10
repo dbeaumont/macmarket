@@ -21,7 +21,16 @@
 
 ---
 
-## Guides rapides par persona
+## 📘 Documentation interactive de l'API
+
+Une fois la stack lancée (`make up` ou `make dev`), consultez la **documentation interactive** :
+
+| Endpoint | Description |
+|----------|-------------|
+| [**Swagger UI**](http://localhost:8080/swagger-ui.html) | Interface graphique pour explorer et tester les endpoints REST |
+| [**OpenAPI JSON**](http://localhost:8080/v3/api-docs) | Spécification complète au format OpenAPI 3.0 (machine-readable) |
+
+Voir [api/backend-api.md](api/backend-api.md) pour une **référence statique** complète de tous les endpoints.
 
 ### 👨‍💻 Développeur — par où commencer ?
 
