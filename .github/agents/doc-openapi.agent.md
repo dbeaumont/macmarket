@@ -1,5 +1,5 @@
 ---
-name: "OpenAPI Spec Generator"
+name: doc-openapi
 description: "Utilise cet agent pour générer un fichier openapi.yaml (OpenAPI 3.0) à partir des RestControllers Spring Boot. Use when: OpenAPI, Swagger, openapi.yaml, openapi.json, contrat machine, génération client, Pact, portail API, springdoc, schéma API, API spec, spécification API."
 tools: [read, search, edit]
 argument-hint: "Module ou controller à documenter (ex: module order, toute l'API). Précise si une spec existe déjà à mettre à jour."

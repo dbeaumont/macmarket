@@ -1,30 +1,31 @@
-# Instructions GitHub Copilot — macmarket
+# Standards de Développement — Architecture DDD Hexagonale
 
 ## Règle fondamentale
 
-Ces instructions s'appliquent à tout développement dans ce projet. Si une règle entre en conflit avec une demande fonctionnelle, signale le conflit et propose une alternative conforme avant d'écrire du code.
+Ces instructions définissent les standards de développement pour les projets utilisant l'architecture DDD hexagonale avec Angular et Spring Boot. Elles s'appliquent à tout développement dans ce contexte. Si une règle entre en conflit avec une demande fonctionnelle, signale le conflit et propose une alternative conforme avant d'écrire du code.
 
 ---
 
-## Stack technique
+## Stack technique ciblée
 
-- **Frontend** : React (ADR-0006) — pas d'Angular dans ce projet
-- **Backend** : Java Spring Boot avec architecture DDD hexagonale (ADR-0002)
-- **Auth** : Keycloak OAuth2/OIDC (ADR-0003)
-- **IA** : Ollama / qwen2.5:3b (ADR-0005)
-- **Paiement** : simulé (ADR-0007)
-- **Structure** : monolithe modulaire Spring Modulith (ADR-0001)
+- **Frontend** : Angular (v17+) avec TypeScript strict
+- **Backend** : Java Spring Boot (v3.0+) avec architecture DDD hexagonale
+- **Authentification** : OAuth2/OIDC (ex: Keycloak, Azure AD)
+- **Base de données** : PostgreSQL (par défaut)
+- **Documentation API** : SpringDoc OpenAPI / Swagger
+
+> **Note** : Adapter ces standards à votre stack si vous utilisez une configuration différente.
 
 ---
 
-## TypeScript / React
+## TypeScript / Angular
 
 ### Typage strict — aucune exception
 
 - **Interdit** : `any`, `object` non typé, cast via `as unknown as X`
 - Tout paramètre, retour de fonction, variable et propriété doit avoir un type explicite
 - Utiliser `unknown` à la place de `any`, puis affiner avec un type guard
-- `strict: true` dans `tsconfig.json` (inclut `strictNullChecks`, `noImplicitAny`)
+- `strict: true` dans `tsconfig.json` (inclut `strictNullChecks`, `noImplicitAny`, `strictFunctionTypes`)
 - `interface` pour les contrats publics ; `type` pour les unions, intersections et alias
 
 ```typescript
@@ -49,65 +50,53 @@ function process(input: string): void {}
 // INTERDIT
 user.name = 'Alice';
 items.push(newItem);
+items.sort((a, b) => a.id - b.id);
 
 // REQUIS
 const updatedUser: User = { ...user, name: 'Alice' };
 const updatedItems: readonly Item[] = [...items, newItem];
+const sortedItems: readonly Item[] = [...items].sort((a, b) => a.id - b.id);
 ```
 
-### Architecture React
+### Architecture Angular
 
-- Composants **fonctionnels uniquement** — pas de class components
 - Un composant = une responsabilité unique (SRP)
-- Pas de logique métier ni d'appels réseau directs dans les composants : déléguer à des **custom hooks** (`use-xxx.ts`)
-- État serveur : **TanStack Query** — jamais de `useEffect` + `fetch` manuel pour du data-fetching
-- État client partagé : **Zustand**, toujours mis à jour de façon immuable — jamais de mutation directe du store
-- `useEffect` : toujours nettoyer abonnements/timers via la fonction de retour (cleanup)
-- **Règle des hooks** : tous les hooks (`useState`, `useEffect`, `useQuery`, `useMutation`, custom hooks…) doivent être appelés **inconditionnellement** au niveau racine du composant — jamais après un `return` conditionnel. Toute violation provoque l'erreur React #310 *"Rendered more hooks than during the previous render"*
-- Props typées via `interface XxxProps` en `readonly`
+- Les composants ne contiennent pas de logique métier : déléguer aux services
+- Les services sont injectables avec `providedIn: 'root'` ou au niveau du module approprié
+- Utiliser les **Signals** Angular (version >= 17) pour la gestion d'état réactif
+- Utiliser `inject()` plutôt que l'injection via constructeur pour les nouveaux composants standalone
+- Les **composants standalone** sont la norme ; éviter les NgModules sauf contrainte existante
+- Les `Observable` doivent être désouscrits : utiliser `takeUntilDestroyed()` ou `async` pipe
+- Ne jamais souscrire manuellement dans un composant sans gestion du cycle de vie
 
 ```typescript
-// INTERDIT — hook appelé après un return conditionnel
-export function MyComponent() {
-  if (isLoading) return <Spinner />; // ← return conditionnel
-  const data = useMyHook();          // ← erreur React #310
+// REQUIS — composant standalone typé
+@Component({
+  selector: 'app-user-card',
+  standalone: true,
+  template: `<div>{{ user()?.name }}</div>`
+})
+export class UserCardComponent {
+  private readonly userService = inject(UserService);
+  readonly userId = input.required<string>();
+
+  readonly user: Signal<User | null> = toSignal(
+    toObservable(this.userId).pipe(
+      switchMap(id => this.userService.getUser(id))
+    ),
+    { initialValue: null }
+  );
 }
 
-// REQUIS — tous les hooks avant tout return conditionnel
-export function MyComponent() {
-  const data = useMyHook();          // ← hook en haut
-  if (isLoading) return <Spinner />; // ← return après
-}
-```
+// REQUIS — service injecté sans constructeur
+@Injectable({ providedIn: 'root' })
+export class UserService {
+  private readonly http = inject(HttpClient);
 
-```typescript
-// REQUIS — composant fonctionnel typé
-interface UserCardProps {
-  readonly userId: string;
+  getUser(id: string): Observable<User> {
+    return this.http.get<User>(`/api/users/${id}`);
+  }
 }
-
-export function UserCardComponent({ userId }: UserCardProps): JSX.Element {
-  const { data: user } = useUser(userId); // custom hook
-  return <div>{user?.name}</div>;
-}
-
-// REQUIS — custom hook
-function useUser(userId: string) {
-  return useQuery({
-    queryKey: ['user', userId],
-    queryFn: () => fetchUser(userId),
-  });
-}
-
-// REQUIS — store Zustand immuable
-interface CartState {
-  readonly items: readonly CartItem[];
-  addItem: (item: CartItem) => void;
-}
-const useCartStore = create<CartState>((set) => ({
-  items: [],
-  addItem: (item) => set((state) => ({ items: [...state.items, item] })),
-}));
 ```
 
 ### Gestion des erreurs TypeScript
@@ -116,18 +105,19 @@ const useCartStore = create<CartState>((set) => ({
 - Typer explicitement : `catch (error: unknown)`
 - Utiliser des types résultat (`Result<T, E>`) pour les opérations faillibles
 
-### Conventions de nommage TypeScript
+### Conventions de nommage TypeScript / Angular
 
-| Élément | Convention |
-|---|---|
-| Composant React | `PascalCase` (fichier `PascalCase.tsx`) |
-| Custom hook | `useXxx` (fichier `use-xxx.ts`) |
-| Store Zustand | `camelCase` + suffixe `Store` (fichier `kebab-case-store.ts`) |
-| Interface / Type | `PascalCase` |
-| Enum | `PascalCase`, valeurs `SCREAMING_SNAKE_CASE` |
-| Variable / Propriété | `camelCase` |
-| Constante globale | `SCREAMING_SNAKE_CASE` |
-| Fichier | Composants `PascalCase.tsx` ; hooks/stores/utilitaires `kebab-case.ts` |
+| Élément | Convention | Exemple |
+|---|---|---|
+| Composant | `PascalCase` + suffixe `Component` | `UserCardComponent` |
+| Service | `PascalCase` + suffixe `Service` | `UserService` |
+| Directive | `PascalCase` + suffixe `Directive` | `HighlightDirective` |
+| Pipe | `PascalCase` + suffixe `Pipe` | `DateFormatPipe` |
+| Interface / Type | `PascalCase` | `UserDto`, `ProductSummary` |
+| Enum | `PascalCase`, valeurs `SCREAMING_SNAKE_CASE` | `Status.PENDING` |
+| Variable / Propriété | `camelCase` | `userId`, `isLoading` |
+| Constante globale | `SCREAMING_SNAKE_CASE` | `MAX_RETRY_COUNT` |
+| Fichier | `kebab-case.type.ts` | `user-card.component.ts` |
 
 ---
 
@@ -176,31 +166,42 @@ src/main/java/com/example/
 
 ```java
 // REQUIS
-public class Order {
-    private final OrderId id;
-    private OrderStatus status;
+public class Aggregate {
+    private final AggregateId id;
+    private AggregateStatus status;
+    private final List<AggregateItem> items;
     private final List<DomainEvent> domainEvents = new ArrayList<>();
 
-    private Order(OrderId id, CustomerId customerId, List<OrderLine> lines) {
-        if (lines == null || lines.isEmpty()) {
-            throw new DomainException("Une commande doit contenir au moins une ligne");
+    private Aggregate(AggregateId id, List<AggregateItem> items) {
+        if (items == null || items.isEmpty()) {
+            throw new DomainException("Invariant métier: au moins 1 item requis");
         }
         this.id = id;
-        this.status = OrderStatus.DRAFT;
+        this.items = new ArrayList<>(items);
+        this.status = AggregateStatus.DRAFT;
     }
 
-    public static Order create(CustomerId customerId, List<OrderLine> lines) {
-        Order order = new Order(OrderId.generate(), customerId, lines);
-        order.domainEvents.add(new OrderCreatedEvent(order.id, order.customerId));
-        return order;
+    public static Aggregate create(List<AggregateItem> items) {
+        Aggregate agg = new Aggregate(AggregateId.generate(), items);
+        agg.domainEvents.add(new AggregateCreatedEvent(agg.id));
+        return agg;
     }
 
-    public void confirm() {
-        if (this.status != OrderStatus.DRAFT) {
-            throw new DomainException("Seule une commande en brouillon peut être confirmée");
+    public void executeBusinessLogic() {
+        if (this.status != AggregateStatus.DRAFT) {
+            throw new DomainException("Invariant métier: opération invalide pour état " + status);
         }
-        this.status = OrderStatus.CONFIRMED;
-        this.domainEvents.add(new OrderConfirmedEvent(this.id));
+        this.status = AggregateStatus.CONFIRMED;
+        this.domainEvents.add(new AggregateStateChangedEvent(this.id, this.status));
+    }
+
+    public AggregateId getId() { return id; }
+    public AggregateStatus getStatus() { return status; }
+    public List<AggregateItem> getItems() { return Collections.unmodifiableList(items); }
+    public List<DomainEvent> pullDomainEvents() {
+        List<DomainEvent> events = List.copyOf(domainEvents);
+        domainEvents.clear();
+        return events;
     }
 }
 ```
@@ -213,36 +214,38 @@ public class Order {
 
 ```java
 // REQUIS
-public record OrderId(UUID value) {
-    public OrderId {
-        Objects.requireNonNull(value, "L'identifiant de commande est obligatoire");
+public record AggregateId(UUID value) {
+    public AggregateId {
+        Objects.requireNonNull(value, "Identifiant obligatoire");
     }
-    public static OrderId generate() { return new OrderId(UUID.randomUUID()); }
-    public static OrderId of(UUID value) { return new OrderId(value); }
+    public static AggregateId generate() { return new AggregateId(UUID.randomUUID()); }
+    public static AggregateId of(UUID value) { return new AggregateId(value); }
 }
 
 // INTERDIT
-public class Order {
-    private Long id;       // ← interdit
-    private String email;  // ← interdit
+public class Entity {
+    private Long id;           // ← utiliser des IDs fortement typés
+    private String userId;     // ← idem pour les références
 }
 ```
 
 ### Domain — Repository interface
 
 - L'interface appartient au **domaine**, pas à l'infrastructure
-- Parle le langage du domaine : `findById(OrderId)`, pas `findById(Long)`
+- Parle le langage du domaine : `findById(AggregateId)`, pas `findById(Long)`
 - Ne retourne jamais d'entités JPA
 
 ```java
-// REQUIS — dans domain/repository
-public interface OrderRepository {
-    void save(Order order);
-    Optional<Order> findById(OrderId id);
+// REQUIS — interface dans le domaine (package domain/repository/)
+public interface AggregateRepository {
+    void save(Aggregate aggregate);
+    Optional<Aggregate> findById(AggregateId id);
+    void delete(AggregateId id);
 }
 
-// INTERDIT
-public interface OrderRepository extends JpaRepository<Order, Long> {} // ← interdit
+// INTERDIT — repository du domaine ne s'étend pas JpaRepository
+public interface AggregateRepository extends JpaRepository<Aggregate, UUID> {}
+// ← Le domaine doit rester pur, sans dépendances framework
 ```
 
 ### Application Service
@@ -251,23 +254,29 @@ public interface OrderRepository extends JpaRepository<Order, Long> {} // ← in
 - `@Transactional` **uniquement** dans la couche application
 
 ```java
-// REQUIS
+// REQUIS — service applicatif dans couche application/
 @Service
 @Transactional
-public class ConfirmOrderService {
-    private final OrderRepository orderRepository;
+public class ExecuteBusinessLogicService {
+    private final AggregateRepository aggregateRepository;
     private final DomainEventPublisher eventPublisher;
 
-    public void confirm(ConfirmOrderCommand command) {
-        Order order = orderRepository.findById(command.orderId())
-            .orElseThrow(() -> new OrderNotFoundException(command.orderId()));
-        order.confirm();
-        orderRepository.save(order);
-        eventPublisher.publish(order.pullDomainEvents());
+    public ExecuteBusinessLogicService(AggregateRepository aggregateRepository,
+                                       DomainEventPublisher eventPublisher) {
+        this.aggregateRepository = aggregateRepository;
+        this.eventPublisher = eventPublisher;
+    }
+
+    public void execute(ExecuteBusinessLogicCommand command) {
+        Aggregate aggregate = aggregateRepository.findById(command.aggregateId())
+            .orElseThrow(() -> new AggregateNotFoundException(command.aggregateId()));
+        aggregate.executeBusinessLogic();
+        aggregateRepository.save(aggregate);
+        eventPublisher.publish(aggregate.pullDomainEvents());
     }
 }
 
-public record ConfirmOrderCommand(OrderId orderId) {}
+public record ExecuteBusinessLogicCommand(AggregateId aggregateId) {}
 ```
 
 ### Infrastructure — Entités JPA
@@ -276,21 +285,36 @@ public record ConfirmOrderCommand(OrderId orderId) {}
 - Mapper explicite pour convertir entre entité JPA et objet du domaine
 
 ```java
-// REQUIS — entité JPA dans infrastructure
+// REQUIS — entité JPA dans infrastructure/persistence/entity/
 @Entity
-@Table(name = "orders")
-class OrderJpaEntity {
+@Table(name = "aggregates")
+class AggregateJpaEntity {
     @Id
     private UUID id;
     private String status;
+    // champs JPA spécifiques à la persistance
 }
 
-// REQUIS — implémentation du repository dans infrastructure
+// REQUIS — implémentation du repository dans infrastructure/persistence/repository/
 @Component
-class OrderJpaRepository implements OrderRepository {
+class AggregateJpaRepositoryAdapter implements AggregateRepository {
+    private final AggregateSpringDataRepository springDataRepository;
+    private final AggregatePersistenceMapper mapper;
+
+    AggregateJpaRepositoryAdapter(AggregateSpringDataRepository springDataRepository,
+                                  AggregatePersistenceMapper mapper) {
+        this.springDataRepository = springDataRepository;
+        this.mapper = mapper;
+    }
+
     @Override
-    public Optional<Order> findById(OrderId id) {
+    public Optional<Aggregate> findById(AggregateId id) {
         return springDataRepository.findById(id.value()).map(mapper::toDomain);
+    }
+
+    @Override
+    public void save(Aggregate aggregate) {
+        springDataRepository.save(mapper.toJpa(aggregate));
     }
 }
 ```
@@ -302,17 +326,247 @@ class OrderJpaRepository implements OrderRepository {
 - `ResponseEntity<T>` avec codes HTTP explicites
 
 ```java
-// REQUIS
+// REQUIS — controller REST dans couche presentation/rest/
 @RestController
-@RequestMapping("/api/orders")
-public class OrderController {
-    @PostMapping("/{id}/confirm")
-    public ResponseEntity<Void> confirm(@PathVariable UUID id) {
-        confirmOrderService.confirm(new ConfirmOrderCommand(OrderId.of(id)));
+@RequestMapping("/api/v1/aggregates")
+public class AggregateController {
+    private final ExecuteBusinessLogicService executeService;
+    private final AggregateQueryService queryService;
+
+    public AggregateController(ExecuteBusinessLogicService executeService,
+                               AggregateQueryService queryService) {
+        this.executeService = executeService;
+        this.queryService = queryService;
+    }
+
+    @PostMapping("/{id}/execute")
+    public ResponseEntity<Void> execute(@PathVariable UUID id) {
+        executeService.execute(new ExecuteBusinessLogicCommand(AggregateId.of(id)));
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<AggregateResponse> getById(@PathVariable UUID id) {
+        return queryService.findById(AggregateId.of(id))
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+}
+```
+
+### Présentation — Documentation obligatoire des REST Controllers avec SpringDoc OpenAPI
+
+**Tous les `@RestController` DOIVENT être documentés avec les annotations SpringDoc OpenAPI. Aucune exception.**
+
+La version de SpringDoc OpenAPI à utiliser dépend du contexte Java/Spring Boot du projet. 
+En fonction de la version de Spring Boot et de Java, utilise la version de SpringDoc OpenAPI compatible.
+
+#### Matrice de Compatibilité SpringDoc OpenAPI
+
+| Spring Boot   | Java  | SpringDoc OpenAPI | Endpoint Swagger      | Notes                         |
+|---------------|-------|-------------------|-----------------------|-------------------------------|
+| 2.7.x | 11-17 | 1.7.x | `/v3/api-docs`    | Ancienne version, EOL |                               |
+| 3.0.x - 3.1.x | 17+   | 2.0.x - 2.8.x     | `/v3/api-docs`        | Transition vers Spring Boot 3 |
+| 3.2.x - 3.3.x | 17+   | 2.3.x - 2.8.x     | `/v3/api-docs`        | Support natif des paramètres  |
+| 4.0.x         | 21+   | 3.0.x             | `/v3/api-docs`        | `/v3/api-docs`                |
+| 4.1.x+        | 25+   | 3.0.x - 3.1.x+    | `/v3/api-docs`        | Version la plus récente.      |
+
+#### Configuration globale
+
+- Un fichier `OpenApiConfig.java` centralisé avec `@Configuration`, `@OpenAPIDefinition` et `@SecurityScheme`
+- `@OpenAPIDefinition` : titre de l'API, version, description, contact, serveurs
+- `@SecurityScheme(name = "bearerAuth", type = HTTP, scheme = "bearer", bearerFormat = "JWT")` pour OAuth2 JWT
+- Dépendance Maven : `org.springdoc:springdoc-openapi-starter-webmvc-ui` avec version compatible (voir matrice)
+- Compiler Maven : `<parameters>true</parameters>` dans `maven-compiler-plugin` (obligatoire depuis SB 3.2+)
+- Configuration `application.yml` :
+  ```yaml
+  springdoc:
+    swagger-ui:
+      path: /swagger-ui.html
+      disable-swagger-default-url: true
+      tags-sorter: alpha
+    api-docs:
+      path: /v3/api-docs
+  ```
+- Production : pour le fichier application.yml utilisé pour la Production, désactiver Swagger UI
+  ```yaml
+  springdoc:
+    swagger-ui:
+      enabled: false
+    api-docs:
+      enabled: false
+  ```
+- SecurityConfig : permettre `GET /swagger-ui/**`, `GET /swagger-ui.html`, `GET /v3/api-docs/**` (permitAll)
+
+#### Annotations par controller
+
+| Annotation | Niveau | Obligatoire | Détail |
+|---|---|---|---|
+| `@Tag(name = "...")` | Classe | ✅ Oui | Groupe logique des endpoints (ex: `@Tag(name = "Commandes")`) |
+| `@SecurityRequirement(name = "bearerAuth")` | Classe ou méthode | ✅ Si protégé | Marque les endpoints nécessitant un JWT Bearer token |
+| `@Operation(summary = "...", description = "...")` | Méthode | ✅ Oui | Documenter chaque endpoint avec verbe HTTP, cas d'usage, données requises |
+| `@ApiResponse(responseCode = "2xx", description = "...")` | Méthode | ✅ Oui | Tous les codes HTTP possibles (200, 201, 204, 400, 403, 404, 500) |
+| `@ApiResponse(..., content = @Content(...))` | Méthode | ✅ Si réponse non-JSON | Documenter les types de contenu spéciaux (SSE, PDF, etc.) |
+| `@Parameter(hidden = true)` | Paramètre | ✅ Pour `@AuthenticationPrincipal` | Exclure du Swagger (ce n'est pas un input utilisateur) |
+| `@Parameter(description = "...", required = true)` | Paramètre | ✅ Pour inputs | Documenter chaque paramètre (path, query, header, body) |
+
+#### Exemple complet (2 endpoints : GET public + POST protégé)
+
+```java
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+
+@RestController
+@RequestMapping("/api/v1/aggregates")
+@Tag(name = "Aggregates", description = "Gestion de l'agrégat principal")
+@SecurityRequirement(name = "bearerAuth") // ← S'applique à tous les endpoints de cette classe
+public class AggregateController {
+    private final AggregateApplicationService aggregateService;
+
+    public AggregateController(AggregateApplicationService aggregateService) {
+        this.aggregateService = aggregateService;
+    }
+
+    // ✅ GET public — pas besoin de @SecurityRequirement en plus
+    @GetMapping
+    @Operation(
+        summary = "Lister les agrégats",
+        description = "Retourne la liste paginée des agrégats accessibles à l'utilisateur"
+    )
+    @ApiResponse(responseCode = "200", description = "Liste des agrégats récupérée")
+    @ApiResponse(responseCode = "401", description = "Non authentifié")
+    public ResponseEntity<Page<AggregateResponse>> list(
+        @ParameterObject Pageable pageable
+    ) {
+        return ResponseEntity.ok(aggregateService.findAll(pageable));
+    }
+
+    // ✅ POST protégé — hérite de @SecurityRequirement de la classe
+    @PostMapping
+    @Operation(
+        summary = "Créer un nouvel agrégat",
+        description = "Crée un nouvel agrégat pour l'utilisateur authentifié. Valide les invariants métier."
+    )
+    @ApiResponse(responseCode = "201", description = "Agrégat créé", 
+                 content = @Content(mediaType = "application/json"))
+    @ApiResponse(responseCode = "400", description = "Données invalides")
+    @ApiResponse(responseCode = "403", description = "Permissions insuffisantes")
+    public ResponseEntity<AggregateResponse> create(
+        @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Données du nouvel agrégat",
+            required = true
+        )
+        @Valid @RequestBody CreateAggregateRequest request,
+        
+        @Parameter(hidden = true) // ← Exclure du Swagger, c'est injecté automatiquement
+        @AuthenticationPrincipal Jwt jwt
+    ) {
+        AggregateResponse created = aggregateService.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
+
+    // ✅ GET retourne une ressource spécifique
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtenir un agrégat par ID")
+    @ApiResponse(responseCode = "200", description = "Agrégat trouvé")
+    @ApiResponse(responseCode = "404", description = "Agrégat non trouvé")
+    public ResponseEntity<AggregateResponse> getById(
+        @Parameter(description = "Identifiant de l'agrégat", required = true)
+        @PathVariable UUID id
+    ) {
+        return aggregateService.findById(AggregateId.of(id))
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+    }
+
+    // ✅ DELETE avec 204 No Content
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Supprimer un agrégat")
+    @ApiResponse(responseCode = "204", description = "Agrégat supprimé")
+    @ApiResponse(responseCode = "404", description = "Agrégat non trouvé")
+    @ApiResponse(responseCode = "409", description = "État invalide pour suppression")
+    public ResponseEntity<Void> delete(
+        @Parameter(description = "Identifiant de l'agrégat", required = true)
+        @PathVariable UUID id
+    ) {
+        aggregateService.delete(AggregateId.of(id));
         return ResponseEntity.noContent().build();
     }
 }
 ```
+
+#### Cas spéciaux
+
+**Streaming SSE (Server-Sent Events)**
+```java
+@PostMapping("/stream")
+@Operation(summary = "Démarrer un streaming SSE")
+@ApiResponse(responseCode = "200", description = "Stream SSE démarré",
+             content = @Content(mediaType = "text/event-stream"))
+public ResponseEntity<SseEmitter> startStream(@Valid @RequestBody StreamRequest request) {
+    SseEmitter emitter = new SseEmitter();
+    streamService.startStreaming(request, emitter);
+    return ResponseEntity.ok(emitter);
+}
+```
+
+**Réponse non-JSON (fichier binaire)**
+```java
+@GetMapping("/{id}/export")
+@Operation(summary = "Exporter une ressource au format PDF")
+@ApiResponse(responseCode = "200", description = "Fichier généré",
+             content = @Content(mediaType = "application/pdf"))
+@ApiResponse(responseCode = "404", description = "Ressource non trouvée")
+public ResponseEntity<byte[]> exportPdf(
+    @Parameter(description = "Identifiant de la ressource", required = true)
+    @PathVariable UUID id
+) {
+    byte[] pdf = exportService.generatePdf(AggregateId.of(id));
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_TYPE, "application/pdf")
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=export.pdf")
+        .body(pdf);
+}
+```
+
+**Paramètre path contraint (enum)**
+```java
+@GetMapping("/{status}")
+@Operation(summary = "Obtenir les ressources par statut")
+@ApiResponse(responseCode = "200", description = "Ressources récupérées")
+public ResponseEntity<List<AggregateResponse>> getByStatus(
+    @Parameter(
+        description = "Statut de filtrage",
+        required = true,
+        schema = @Schema(
+            allowableValues = {"DRAFT", "CONFIRMED", "ARCHIVED"}
+        )
+    )
+    @PathVariable String status
+) {
+    return ResponseEntity.ok(aggregateService.findByStatus(status));
+}
+```
+
+#### Vérification obligatoire en audit / review
+
+Lors d'une revue de code (`audit-code`, `arch-review-backend`) ou d'une génération de feature (`codegen-feature`), vérifier que **100 % des endpoints sont documentés** :
+
+- ❌ Interdit : endpoint sans `@Operation`
+- ❌ Interdit : endpoint sans code HTTP réponse documenté (`@ApiResponse`)
+- ❌ Interdit : controller sans `@Tag`
+- ❌ Interdit : endpoint protégé sans `@SecurityRequirement`
+- ❌ Interdit : réponse non-JSON sans `@Content(mediaType = "...")`
+- ❌ Interdit : paramètre sans `@Parameter(description = "...")`
+- ❌ Interdit : `@AuthenticationPrincipal` visible dans Swagger (manque `@Parameter(hidden = true)`)
+
+**Si une non-conformité est détectée, rejeter le code et exiger les annotations avant acceptance.**
+
+**Note sur la version SpringDoc** : La version à utiliser dépend du contexte du projet (Java + Spring Boot). Consulter la matrice de compatibilité (cf. ci-dessus) avant de configurer les dépendances. Si aucune correspondance exacte, préférer la version antérieure (sécurité d'abord).
 
 ### Gestion des erreurs Java
 
@@ -341,25 +595,17 @@ public record ErrorResponse(String code, String message, Instant timestamp) {}
 
 | Élément | Convention | Exemple |
 |---|---|---|
-| Agrégat / Entité | `PascalCase` | `Order`, `Customer` |
-| Value Object | `PascalCase` | `OrderId`, `Email`, `Money` |
-| Domain Event | `PascalCase` + `Event` | `OrderConfirmedEvent` |
-| Command | `PascalCase` + `Command` | `ConfirmOrderCommand` |
-| Query | `PascalCase` + `Query` | `FindOrderByIdQuery` |
-| Application Service | `PascalCase` + `Service` | `ConfirmOrderService` |
-| Repository interface | `PascalCase` + `Repository` | `OrderRepository` |
-| DTO réponse | `PascalCase` + `Response` | `OrderResponse` |
-| DTO requête | `PascalCase` + `Request` | `CreateOrderRequest` |
-| Package bounded context | `lowercase` | `order`, `billing` |
-
----
-
-## Documentation
-
-- Documentation en **français**
-- ADRs au format MADR dans `docs/adr/XXXX-titre.md`
-- Diagrammes en **Mermaid** dans `docs/diagrams/`
-- Architecture dans `ARCHITECTURE.md`
+| Agrégat / Entité | `PascalCase` | `Product`, `Invoice`, `User` |
+| Value Object | `PascalCase` (fortement typé) | `ProductId`, `Email`, `Money` |
+| Domain Event | `PascalCase` + `Event` | `ProductCreatedEvent`, `PaymentProcessedEvent` |
+| Command (CQRS) | `PascalCase` + `Command` | `CreateProductCommand` |
+| Query (CQRS) | `PascalCase` + `Query` | `FindProductByIdQuery` |
+| Application Service | `PascalCase` + `Service` | `CreateProductService` |
+| Repository interface | `PascalCase` + `Repository` (dans domain/) | `ProductRepository` |
+| Adapter repository | `PascalCase` + `RepositoryAdapter` (dans infrastructure/) | `ProductJpaRepositoryAdapter` |
+| DTO réponse | `PascalCase` + `Response` | `ProductResponse` |
+| DTO requête | `PascalCase` + `Request` | `CreateProductRequest` |
+| Package bounded context | `lowercase` | `product`, `payment`, `inventory` |
 
 ---
 

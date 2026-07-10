@@ -1,6 +1,6 @@
 ---
 description: "Utilise cet agent pour auditer la sécurité du code selon OWASP Top 10. Use when: audit sécurité, OWASP, injection SQL, XSS, CSRF, autorisation, authentification Keycloak, secrets exposés, validation inputs, Bean Validation, headers HTTP, CVE, vulnérabilité."
-name: "Security Auditor"
+name: audit-security
 tools: [read, search]
 ---
 

@@ -1,6 +1,5 @@
 ---
-name: retrodoc
-description: "Use when generating retrodocumentation, reverse documentation, technical docs from an existing codebase, architecture documentation, functional documentation, and Mermaid/C4 diagrams. Also use for targeted diagrams: diagramme ciblé, bounded context diagram, sequence diagram feature, class diagram aggregate, domain events diagram. Trigger phrases: retrodocumentation, documentation technique, documentation fonctionnelle, architecture globale, diagrammes Mermaid, C4, sequence diagram, class diagram, flow diagram, diagramme, générer un diagramme, visualiser un flux, modélisation visuelle."
+name: doc-retro
 tools: [read, search, edit, execute]
 argument-hint: "(1) Rétrodocumentation complète : chemin du projet et niveau de détail. (2) Diagramme ciblé : décris ce que tu veux visualiser (ex: flux de confirmation de commande, classes du module catalog, events inter-domaines)"
 user-invocable: true

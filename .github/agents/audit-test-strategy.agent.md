@@ -1,6 +1,6 @@
 ---
 description: "Utilise cet agent pour proposer une stratégie de tests adaptée à un bounded context ou une feature. Use when: stratégie de tests, test unitaire, test intégration, TestContainers, WebMvcTest, SpringBootTest, TanStack Query mock, Vitest, React Testing Library, test domain, couverture de tests."
-name: "Test Strategy Advisor"
+name: audit-test-strategy
 tools: [read, search]
 argument-hint: "Nom du bounded context ou de la feature à tester (ex: module order, feature confirm-order)"
 ---

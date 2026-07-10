@@ -1,6 +1,5 @@
 ---
-name: ADR Generator
-description: "Utilise cet agent pour rédiger un ADR (Architecture Decision Record) au format MADR en français. Use when: ADR, architecture decision record, décision technique, MADR, documenter un choix, justifier une décision, docs/adr, alternatives considérées."
+name: doc-adr
 tools: [read, search, edit]
 argument-hint: "Décris le problème technique et le choix retenu (ex: choix de la lib de cache, stratégie d'authentification, format d'API...)"
 ---

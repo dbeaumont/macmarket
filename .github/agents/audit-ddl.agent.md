@@ -1,5 +1,5 @@
 ---
-name: "DDL Auditor"
+name: audit-ddl
 description: "Utilise cet agent pour auditer le DDL d'une base de données à partir d'un fichier SQL fourni. Use when: audit DDL, fichier SQL, CREATE TABLE, CREATE PROCEDURE, CREATE TRIGGER, CREATE FUNCTION, audit schéma SQL, procédures stockées, triggers, audit base de données depuis fichier, DDL review."
 tools: [read, search, edit]
 argument-hint: "Chemin du fichier DDL SQL à auditer (ex: db/schema.sql, ddl_prod.sql). Tu peux aussi fournir un document décrivant les principes d'architecture attendus (PDF, markdown)."

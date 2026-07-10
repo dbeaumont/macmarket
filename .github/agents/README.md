@@ -10,35 +10,35 @@ Ce document décrit le rôle de chaque agent disponible dans `.github/agents` et
 
 | Agent | Catégorie | Rôle résumé |
 |---|---|---|
-| [ADR Generator](#adr-generator) | Documentation | Rédiger un ADR au format MADR |
-| [API Contract Documenter](#api-contract-documenter) | Documentation | Documenter les contrats d'API REST |
-| [Changelog Writer](#changelog-writer) | Documentation | Générer un CHANGELOG depuis les commits Git |
-| [OpenAPI Spec Generator](#openapi-spec-generator) | Documentation | Génération de spécification OpenAPI 3.0 |
-| [RetroDoc](#retrodoc) | Documentation | Rétrodocumentation complète ou diagramme ciblé |
-| [Architecture Reviewer Backend](#architecture-reviewer-backend) | Architecture | Audit de conformité DDD hexagonale (Java) |
-| [Architecture Reviewer Frontend](#architecture-reviewer-frontend) | Architecture | Audit de conformité architecturale Angular |
-| [Bounded Context Designer](#bounded-context-designer) | Architecture | Conception d'un découpage en Bounded Contexts |
-| [Feature Scaffolder](#feature-scaffolder) | Architecture | Squelette de code pour une feature DDD |
-| [Code Reviewer](#code-reviewer) | Qualité | Revue de code qualité (naming, erreurs, anti-patterns) |
-| [Performance Reviewer](#performance-reviewer) | Qualité | Détection des anti-patterns de performance |
-| [Security Auditor](#security-auditor) | Qualité | Audit de sécurité OWASP Top 10 |
-| [Technical Debt Mapper](#technical-debt-mapper) | Qualité | Cartographie et priorisation de la dette technique |
-| [Test Strategy Advisor](#test-strategy-advisor) | Qualité | Stratégie de tests pour un module ou une feature |
-| [CI/CD Pipeline Generator](#cicd-pipeline-generator) | DevOps | Génération de pipelines GitLab CI / GitHub Actions |
-| [Dockerfile Advisor](#dockerfile-advisor) | DevOps | Génération et audit de Dockerfiles optimisés |
-| [Architecture Reviewer Database](#architecture-reviewer-database) | Données | Audit de la couche base de données (DDL, procédures, sécurité) |
-| [DB Migration Generator](#db-migration-generator) | Données | Génération de scripts Flyway / Liquibase |
-| [DDL Auditor](#ddl-auditor) | Données | Audit d’un fichier DDL SQL fourni |
-| [GDPR Compliance Reviewer](#gdpr-compliance-reviewer) | Conformité | Détection des non-conformités RGPD |
-| [License Checker](#license-checker) | Conformité | Audit des licences des dépendances |
-| [Incident Post-mortem Writer](#incident-post-mortem-writer) | Exploitation | Rédaction de post-mortems structurés |
-| [Observability Advisor](#observability-advisor) | Exploitation | Stratégie métriques, traces, logs, alertes |
+| [doc-adr](#adr-generator) | Documentation | Rédiger un ADR au format MADR |
+| [doc-api-contract](#api-contract-documenter) | Documentation | Documenter les contrats d'API REST |
+| [doc-changelog](#changelog-writer) | Documentation | Générer un CHANGELOG depuis les commits Git |
+| [doc-openapi](#openapi-spec-generator) | Documentation | Génération de spécification OpenAPI 3.0 |
+| [doc-retro](#retrodoc) | Documentation | Rétrodocumentation complète ou diagramme ciblé |
+| [codegen-feature](#feature-scaffolder) | Génération de code | Squelette de code pour une feature DDD |
+| [codegen-db-migration](#db-migration-generator) | Génération de code | Génération de scripts Flyway / Liquibase |
+| [arch-review-backend](#architecture-reviewer-backend) | Audit d'architecture | Audit de conformité DDD hexagonale (Java) |
+| [arch-review-frontend](#architecture-reviewer-frontend) | Audit d'architecture | Audit de conformité architecturale Angular |
+| [arch-review-db](#architecture-reviewer-database) | Audit d'architecture | Audit de conformité de la couche base de données (DDL, procédures, sécurité) |
+| [arch-bounded-context](#bounded-context-designer) | Audit d'architecture | Conception d'un découpage en Bounded Contexts |
+| [audit-code](#code-reviewer) | Audit qualité | Revue de code qualité (naming, erreurs, anti-patterns) |
+| [audit-perf](#performance-reviewer) | Audit qualité | Détection des anti-patterns de performance |
+| [audit-security](#security-auditor) | Audit sécurité | Audit de sécurité OWASP Top 10 |
+| [audit-techdebt](#technical-debt-mapper) | Audit qualité | Cartographie et priorisation de la dette technique |
+| [audit-test-strategy](#test-strategy-advisor) | Audit qualité | Stratégie de tests pour un module ou une feature |
+| [audit-ddl](#ddl-auditor) | Audit données | Audit d’un fichier DDL SQL fourni |
+| [devops-cicd](#cicd-pipeline-generator) | DevOps | Génération de pipelines GitLab CI / GitHub Actions |
+| [devops-docker](#dockerfile-advisor) | DevOps | Génération et audit de Dockerfiles optimisés |
+| [compliance-gdpr](#gdpr-compliance-reviewer) | Conformité | Détection des non-conformités RGPD |
+| [compliance-license](#license-checker) | Conformité | Audit des licences des dépendances |
+| [ops-postmortem](#incident-post-mortem-writer) | Exploitation | Rédaction de post-mortems structurés |
+| [ops-observability](#observability-advisor) | Exploitation | Stratégie métriques, traces, logs, alertes |
 
 ---
 
 ## Documentation
 
-### ADR Generator
+### doc-adr
 
 **Rôle** : Rédige des ADRs (Architecture Decision Records) au format MADR, en français. Détermine automatiquement le prochain numéro disponible en lisant `docs/adr/`, crée le fichier avec les sections Contexte, Décision, Conséquences, Alternatives considérées, Plan d'implémentation et Références.
 
@@ -53,7 +53,7 @@ L'alternative principale était un cache in-memory (Caffeine).
 
 ---
 
-### API Contract Documenter
+### doc-api-contract
 
 **Rôle** : Analyse les `@RestController` Spring Boot d'un module et génère une documentation de contrat d'API structurée : endpoints, méthodes HTTP, paramètres, body, codes de retour, DTOs et règles de sécurité (`@PreAuthorize`).
 
@@ -66,7 +66,7 @@ Documente le contrat d'API du module order (OrderController).
 
 ---
 
-### Changelog Writer
+### doc-changelog
 
 **Rôle** : Analyse l'historique Git et génère un CHANGELOG structuré en sections (`feat`, `fix`, `refactor`, `chore`…) selon la convention Conventional Commits. Produit un fichier `CHANGELOG.md` lisible par des humains.
 
@@ -83,7 +83,7 @@ Génère le CHANGELOG entre le tag v1.2.0 et HEAD.
 
 ---
 
-### RetroDoc
+### doc-retro
 
 **Rôle** : Deux modes d'utilisation —
 
@@ -115,7 +115,7 @@ Génère un diagramme des Domain Events qui traversent les frontières de bounde
 
 ## Architecture
 
-### Architecture Reviewer Backend
+### arch-review-backend
 
 **Rôle** : Audite la conformité architecturale DDD hexagonale du code Java Spring Boot : règle de dépendance (Domain ← Infrastructure), pureté du domaine (absence d'imports Spring/JPA), agrégats (factory methods, comportements, invariants), Value Objects immuables, interfaces Repository dans le domaine.
 
@@ -132,7 +132,7 @@ Audite la PR : est-ce que la couche domain reste pure dans le module catalog ?
 
 ---
 
-### Architecture Reviewer Frontend
+### arch-review-frontend
 
 **Rôle** : Audite la conformité architecturale Angular/TypeScript : séparation des responsabilités (composant = affichage uniquement), services et injection de dépendances (`inject()`), composants standalone, gestion de l'état réactif (Signals vs BehaviorSubject), désabonnement des Observables, typage TypeScript strict.
 
@@ -145,7 +145,7 @@ Vérifie la conformité architecturale Angular du composant OrderListComponent e
 
 ---
 
-### Bounded Context Designer
+### arch-bounded-context
 
 **Rôle** : Analyse une description fonctionnelle ou métier et propose un découpage en Bounded Contexts DDD cohérent : identification des sous-domaines (Core/Supporting/Generic), définition des agrégats et racines, identification des Domain Events, proposition de Context Mapping (Shared Kernel, Customer/Supplier, ACL…).
 
@@ -159,7 +159,7 @@ Propose un découpage en bounded contexts et identifie les domain events avec le
 
 ---
 
-### Feature Scaffolder
+### codegen-feature
 
 **Rôle** : Génère le squelette de code complet d'une feature DDD hexagonale : Command/Query, Application Service, interface Repository, entité/agrégat, DTO de présentation, Controller Spring Boot. Respecte les conventions de nommage et la structure des packages du projet.
 
@@ -178,7 +178,7 @@ Génère le squelette de la feature "ajouter un produit au catalogue" dans le mo
 
 ## Qualité
 
-### Code Reviewer
+### audit-code
 
 **Rôle** : Effectue une revue de code orientée qualité quotidienne : conventions de nommage (Java PascalCase/suffixes, Angular kebab-case), gestion des erreurs (try/catch typés, pas de catch vides), logging (SLF4J, pas de `System.out.println`), typage TypeScript strict (`unknown` vs `any`, readonly), immutabilité des tableaux et objets.
 
@@ -195,7 +195,7 @@ Revue de code sur backend/src/main/java/order/application/ConfirmOrderService.ja
 
 ---
 
-### Security Auditor
+### audit-security
 
 **Rôle** : Audite le code selon l'OWASP Top 10 : contrôle d'accès (`@PreAuthorize`, rôles), échecs cryptographiques (secrets en dur, HTTP non sécurisé), injections (JPQL/SQL par concaténation), mauvaise configuration (CORS `*`, Actuator exposé, `permitAll()`), authentification JWT, journalisation insuffisante, et inventaire des dépendances vulnérables (CVE dans `pom.xml`/`package.json`).
 
@@ -212,7 +212,7 @@ Vérifie s'il y a des secrets exposés ou des CVE dans les dépendances du proje
 
 ---
 
-### Test Strategy Advisor
+### audit-test-strategy
 
 **Rôle** : Propose une stratégie de tests complète et pragmatique pour un bounded context ou une feature : pyramide de tests (unitaires domaine, intégration `@WebMvcTest`/`@SpringBootTest`/TestContainers, E2E), choix des outils (JUnit, Mockito, Vitest, React Testing Library, TanStack Query mock), exemples de cas de test à couvrir.
 
@@ -229,7 +229,7 @@ Audite la couverture de tests du module catalog et propose les tests manquants.
 
 ---
 
-### Performance Reviewer
+### audit-perf
 
 **Rôle** : Détecte les anti-patterns de performance dans le code Java/Spring Boot (requêtes N+1, chargements `EAGER` non justifiés, pagination absente, boucles avec appels BDD/HTTP, transactions trop larges) et Angular/TypeScript (`ChangeDetectionStrategy.Default`, Observables non partagés, fonctions dans les templates). Produit un rapport priorisé avec corrections concrètes.
 
@@ -246,7 +246,7 @@ Audite les performances du composant ProductListComponent : re-rendus inutiles, 
 
 ---
 
-### Technical Debt Mapper
+### audit-techdebt
 
 **Rôle** : Cartographie la dette technique d'un projet en analysant les marqueurs explicites (`TODO`, `FIXME`, `HACK`), les anti-patterns structurels (God classes, couplage fort, duplication), la couverture de tests, et les dépendances obsolètes. Produit un backlog de remédiation priorisé avec estimation d'effort.
 
@@ -265,7 +265,7 @@ Estime la dette technique du module order uniquement, avec un focus sur les test
 
 ## DevOps
 
-### CI/CD Pipeline Generator
+### devops-cicd
 
 **Rôle** : Analyse le projet (technologies, modules, outils qualité) et génère un pipeline CI/CD complet adapté : stages validate, test, quality (SonarQube), security (OWASP), build, Docker, déploiement par environnement (dev/UAT/prod) avec protections sur les déploiements production. Supporte GitLab CI (`.gitlab-ci.yml`) et GitHub Actions.
 
@@ -282,7 +282,7 @@ Génère un workflow GitHub Actions avec build Maven, tests, SonarQube et push D
 
 ---
 
-### Dockerfile Advisor
+### devops-docker
 
 **Rôle** : Génère un `Dockerfile` multi-stage optimisé et sécurisé (utilisateur non-root, image base épinglée, healthcheck, layer caching), ou audite un `Dockerfile` existant pour détecter les problèmes de sécurité (secrets dans l'image, `root`, `latest`) et d'optimisation (build non multi-stage, cache invalidé). Génère aussi un `docker-compose.yml` de développement local.
 
@@ -301,7 +301,7 @@ Audite le Dockerfile existant et corrige les problèmes de sécurité et d'optim
 
 ## Données
 
-### DDL Auditor
+### audit-ddl
 
 **Rôle** : Audite un fichier DDL SQL fourni explicitement. Commence par demander le chemin du fichier si absent. Lit le DDL en intégralité, extrait les principes des documents d’architecture transmis (PDF, ADC, ADR…) et les transforme en contrôles supplémentaires. Vérifie nommage, typage, intégrité référentielle, normalisation, index, règles sur les procédures stockées (périmètre technique, documentation en-tête, gestion des erreurs, pas de valeurs métier en dur, portabilité SQL), séparation métier/persistance et sécurité. Produit un rapport complet dans `_audit/`.
 
@@ -321,7 +321,7 @@ PostgreSQL spécifique).
 
 ---
 
-### Architecture Reviewer Database
+### arch-review-db
 
 **Rôle** : Audite la couche base de données d'un projet à partir de l'ensemble des artefacts disponibles : DDL SQL si fourni, ou découverte automatique dans le projet (scripts Flyway/Liquibase, entités JPA, `@Query` natives, `@Procedure`, configuration `datasource`). Vérifie le respect des principes d'architecture fournis et des bonnes pratiques du marché : nommage, typage, intégrité référentielle, normalisation, index, périmètre technique des procédures, gestion des erreurs, absence de valeurs métier en dur, portabilité SQL, séparation logique métier/persistance, couplage inter-microservices. Produit un rapport d'audit complet et honnête dans `docs/audit/`.
 
@@ -340,7 +340,7 @@ elles doivent être purement techniques (pas de logique métier), correctement d
 
 ---
 
-### DB Migration Generator
+### codegen-db-migration
 
 **Rôle** : Génère des scripts de migration Flyway ou Liquibase à partir d'une description de changement de schéma ou en comparant avec les entités JPA existantes. Applique les bonnes pratiques : nommage séquentiel, zero-downtime deployment (nouvelles colonnes avec DEFAULT, index `CONCURRENTLY`), scripts idempotents et rollback documenté.
 
@@ -359,7 +359,7 @@ Génère les migrations nécessaires pour renommer la table 'order' en 'purchase
 
 ## Documentation
 
-### OpenAPI Spec Generator
+### doc-openapi
 
 **Rôle** : Génère un fichier `openapi.yaml` (OpenAPI 3.0) complet à partir des `@RestController` Spring Boot : endpoints, paramètres, corps de requête/réponse, schémas de DTOs avec contraintes Bean Validation, codes HTTP, exemples et configuration de sécurité OAuth2. Utilisable pour la génération de clients TypeScript/Python, les tests de contrat (Pact) et les portails API.
 
@@ -378,7 +378,7 @@ Mets à jour l'openapi.yaml existant avec les nouveaux endpoints du module payme
 
 ## Conformité
 
-### GDPR Compliance Reviewer
+### compliance-gdpr
 
 **Rôle** : Analyse le code pour détecter les non-conformités RGPD : données personnelles (PII) dans les logs, stockage de données sensibles en clair, absence de durée de conservation, sur-exposition dans les DTOs de réponse, données personnelles dans les URLs, absence de mécanisme de droit à l'effacement. Produit un rapport structuré par article RGPD.
 
@@ -395,7 +395,7 @@ Vérifie que le module order ne logue pas de données personnelles et que les du
 
 ---
 
-### License Checker
+### compliance-license
 
 **Rôle** : Analyse les licences des dépendances Maven (`pom.xml`) et npm (`package.json`) et détecte les incompatibilités avec la licence du projet (ex : dépendance GPL dans un projet propriétaire). Produit un rapport classé par niveau de risque (critique, vigilance, conforme) avec recommandations de remplacement.
 
@@ -414,7 +414,7 @@ Analyse les licences des dépendances npm du frontend et signale tout risque GPL
 
 ## Exploitation
 
-### Observability Advisor
+### ops-observability
 
 **Rôle** : Propose une stratégie d'observabilité complète pour un service : métriques techniques (Micrometer/Prometheus) et métier, SLI/SLO mesurables, points de trace OpenTelemetry à ajouter manuellement, configuration des logs structurés (JSON + MDC), et alertes Grafana prioritaires (taux d'erreur, latence P99, pool BDD, mémoire JVM).
 
@@ -431,7 +431,7 @@ Identifie les métriques Micrometer manquantes dans le service de paiement et pr
 
 ---
 
-### Incident Post-mortem Writer
+### ops-postmortem
 
 **Rôle** : Rédige un post-mortem structuré et blameless à partir de la description d'un incident : résumé exécutif, chronologie horodatée, analyse causes racines (méthode 5 Why), ce qui a bien/mal fonctionné, et tableau d'actions correctives avec responsables et échéances. Crée le fichier dans `docs/postmortems/`.
 

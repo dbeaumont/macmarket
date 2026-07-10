@@ -1,5 +1,5 @@
 ---
-name: "License Checker"
+name: compliance-license
 description: "Utilise cet agent pour analyser les licences des dépendances et détecter les incompatibilités juridiques. Use when: licence, license, GPL, Apache, MIT, LGPL, dépendances, conformité juridique, audit licences, compatibilité licence, propriétaire, open source, pom.xml, package.json."
 tools: [read, search]
 argument-hint: "Licence du projet (ex: 'propriétaire', 'Apache 2.0', 'MIT') et périmètre (ex: 'toutes les dépendances', 'backend uniquement')"

@@ -1,5 +1,5 @@
 ---
-name: "Incident Post-mortem Writer"
+name: ops-postmortem
 description: "Utilise cet agent pour rédiger un post-mortem structuré à partir d'une description d'incident. Use when: post-mortem, incident, panne, outage, retour d'expérience, REX, root cause analysis, 5 Why, chronologie incident, actions correctives, SRE, blameless."
 tools: [read, edit]
 argument-hint: "Décris l'incident : date, durée, service impacté, symptômes observés, actions prises (ex: 'panne API paiement le 05/07 de 14h à 16h, timeout base de données, rollback effectué')"

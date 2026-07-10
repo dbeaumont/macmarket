@@ -1,5 +1,5 @@
 ---
-name: "Observability Advisor"
+name: ops-observability
 description: "Utilise cet agent pour proposer une stratégie d'observabilité : métriques, traces, logs structurés, alertes. Use when: observabilité, métriques, Micrometer, Prometheus, Grafana, OpenTelemetry, traces distribuées, alertes, SLO, SLI, dashboard, logs structurés, health check, actuator."
 tools: [read, search]
 argument-hint: "Service ou module à instrumenter (ex: module order, API paiement). Précise les outils en place si connus (ex: Prometheus, Grafana, Jaeger)"

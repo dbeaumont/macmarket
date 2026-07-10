@@ -1,5 +1,5 @@
 ---
-name: "CI/CD Pipeline Generator"
+name: devops-cicd
 description: "Utilise cet agent pour générer ou améliorer un pipeline CI/CD adapté au projet détecté. Use when: pipeline CI/CD, GitLab CI, GitHub Actions, stages build test deploy, pipeline manquant, .gitlab-ci.yml, workflow GitHub, SonarQube, ArgoCD, Docker build, pipeline qualité."
 tools: [read, search, edit]
 argument-hint: "Technologie cible (ex: 'GitLab CI', 'GitHub Actions') et objectifs (ex: 'build Maven + Angular, Docker, déploiement ArgoCD')"

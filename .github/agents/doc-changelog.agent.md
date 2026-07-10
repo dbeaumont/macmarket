@@ -1,6 +1,6 @@
 ---
 description: "Utilise cet agent pour générer un CHANGELOG structuré à partir des commits Git. Use when: changelog, CHANGELOG.md, release notes, notes de version, historique des commits, git log, what changed, résumé des modifications."
-name: "Changelog Writer"
+name: doc-changelog
 tools: [execute, read]
 argument-hint: "Plage de commits ou version cible (ex: 'depuis v1.0.0', 'derniers 30 commits', 'entre v1.2.0 et v1.3.0')"
 ---

@@ -1,5 +1,5 @@
 ---
-name: "DB Migration Generator"
+name: codegen-db-migration
 description: "Utilise cet agent pour générer des scripts de migration de base de données Flyway ou Liquibase. Use when: migration base de données, Flyway, Liquibase, script SQL, ALTER TABLE, CREATE TABLE, changement de schéma, rename colonne, ajout colonne, index, contrainte, rollback migration."
 tools: [read, search, edit]
 argument-hint: "Décris le changement de schéma souhaité (ex: 'ajouter une colonne email à la table users', 'renommer la table order en purchase_order')"

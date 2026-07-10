@@ -1,5 +1,5 @@
 ---
-name: "Technical Debt Mapper"
+name: audit-techdebt
 description: "Utilise cet agent pour cartographier et prioriser la dette technique d'un projet. Use when: dette technique, technical debt, TODO, FIXME, HACK, refactoring, god class, couplage fort, absence de tests, code legacy, backlog technique, chiffrage dette, qualité code, SonarQube, amélioration continue."
 tools: [read, search]
 argument-hint: "Périmètre à analyser (ex: module order, backend complet, frontend). Précise si tu veux une analyse globale ou ciblée sur un type de dette."

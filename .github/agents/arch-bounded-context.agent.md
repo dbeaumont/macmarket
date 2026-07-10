@@ -1,6 +1,6 @@
 ---
 description: "Utilise cet agent pour concevoir un découpage en Bounded Contexts DDD à partir d'une description fonctionnelle ou métier. Use when: bounded context, DDD design, découpage domaine, agrégats, domain events, ubiquitous language, context mapping, sous-domaine, modélisation métier, architecture DDD."
-name: "Bounded Context Designer"
+name: arch-bounded-context
 tools: [read, search]
 ---
 

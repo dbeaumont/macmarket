@@ -1,5 +1,5 @@
 ---
-name: "Dockerfile Advisor"
+name: devops-docker
 description: "Utilise cet agent pour générer ou auditer un Dockerfile et un docker-compose.yml. Use when: Dockerfile, Docker, image Docker, multi-stage build, optimisation image, docker-compose, non-root, base image, layer caching, healthcheck, conteneur, containerisation."
 tools: [read, search, edit]
 argument-hint: "Mode : 'générer' (nouveau Dockerfile) ou 'auditer' (Dockerfile existant). Précise la technologie (ex: Spring Boot JAR, Angular Nginx)"

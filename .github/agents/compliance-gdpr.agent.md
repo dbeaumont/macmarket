@@ -1,5 +1,5 @@
 ---
-name: "GDPR Compliance Reviewer"
+name: compliance-gdpr
 description: "Utilise cet agent pour détecter les non-conformités RGPD dans le code. Use when: RGPD, GDPR, données personnelles, PII, données sensibles, droit à l'effacement, consentement, pseudonymisation, anonymisation, durée de conservation, logs avec données personnelles, audit CNIL, conformité données."
 tools: [read, search]
 argument-hint: "Périmètre à analyser (ex: module user, module order, toute l'application, entités JPA)"

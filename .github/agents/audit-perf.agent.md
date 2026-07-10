@@ -1,5 +1,5 @@
 ---
-name: "Performance Reviewer"
+name: audit-perf
 description: "Utilise cet agent pour détecter les problèmes de performance dans le code Java/Spring Boot et Angular/TypeScript. Use when: performance, N+1, requête lente, EAGER, lazy loading, pagination absente, boucle avec appel HTTP, index manquant, @Transactional trop large, appel bloquant, mémoire, fuite mémoire, slow query."
 tools: [read, search]
 argument-hint: "Chemin du fichier, module ou bounded context à analyser (ex: module order, OrderRepository, OrderListComponent)"

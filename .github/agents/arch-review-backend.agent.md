@@ -1,6 +1,6 @@
 ---
 description: "Utilise cet agent pour un audit de conformité architecturale DDD hexagonale (structure des couches, règle de dépendance, pureté du domaine). Use when: backend architecture review, DDD compliance, hexagonal check, domain purity, dependency rule violation, couche domain, infrastructure dans domain, Spring dans domain, setters publics, agrégat, Value Object, repository interface, audit architectural backend. Do NOT use for: revue qualité de code générale → Code Reviewer."
-name: "Architecture Reviewer Backend"
+name: arch-review-backend
 tools: [read, search]
 ---
 

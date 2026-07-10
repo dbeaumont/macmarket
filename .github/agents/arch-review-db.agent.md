@@ -1,5 +1,5 @@
 ---
-name: "Architecture Reviewer Database"
+name: arch-review-db
 description: "Utilise cet agent pour auditer la couche base de données d'un projet : DDL, migrations Flyway/Liquibase, entités JPA, repositories, procédures stockées, triggers, conventions de nommage, séparation logique métier / persistance, bonnes pratiques SQL. Use when: audit base de données, DDL, SQL, procédures stockées, stored procedures, triggers, schéma base de données, nommage tables, index manquant, base de données partagée, microservices base commune, PostgreSQL audit, audit schéma, entités JPA, Flyway, Liquibase, @Entity, @Query, @Repository."
 tools: [read, search, edit]
 argument-hint: "Contexte du projet (ex: base PostgreSQL partagée entre microservices Java) et, si disponibles, le fichier DDL SQL et tout document d’architecture (PDF, markdown, ADC, ADR). Sans DDL, l’agent découvre automatiquement les artefacts BDD du projet."
@@ -58,16 +58,16 @@ Avant toute analyse, cartographier l’ensemble des sources d’information lié
 Avant de démarrer l’analyse, produire un inventaire des artefacts trouvés :
 
 ```
-│ Artefact                        │ Trouvé │ Détail                         │
-├─────────────────────────────────┼─────────┼───────────────────────────────┤
-│ DDL SQL fourni                  │ oui/non │ [nom du fichier]              │
+│ Artefact                        │ Trouvé │ Détail                          │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ DDL SQL fourni                  │ oui/non │ [nom du fichier]               │
 │ Scripts Flyway/Liquibase        │ oui/non │ [N scripts, V001 à VXXX]      │
-│ Entités JPA                     │ oui/non │ [N entités dans X packages]   │
-│ Repositories Spring Data        │ oui/non │ [N repositories]              │
-│ Requêtes @Query natives         │ oui/non │ [N requêtes SQL natives]      │
-│ Procédures stockées / triggers  │ oui/non │ [N procédures identifiées]    │
-│ Configuration datasource        │ oui/non │ [driver, ddl-auto, dialect]   │
-│ Documents d’architecture        │ oui/non │ [noms des fichiers]           │
+│ Entités JPA                     │ oui/non │ [N entités dans X packages]    │
+│ Repositories Spring Data       │ oui/non │ [N repositories]               │
+│ Requêtes @Query natives         │ oui/non │ [N requêtes SQL natives]        │
+│ Procédures stockées / triggers  │ oui/non │ [N procédures identifiées]     │
+│ Configuration datasource        │ oui/non │ [driver, ddl-auto, dialect]     │
+│ Documents d’architecture        │ oui/non │ [noms des fichiers]             │
 ```
 
 Si aucune source n’est trouvée, en informer l’utilisateur et demander où se trouvent les artefacts BDD avant de continuer.

@@ -1,6 +1,6 @@
 ---
 description: "Utilise cet agent pour générer le squelette complet d'une feature DDD : Command, Query, Application Service, interface Repository, DTO, Controller. Use when: scaffolding, scaffold feature, générer feature, créer feature DDD, nouveau cas d'usage, nouvelle fonctionnalité, squelette de code."
-name: "Feature Scaffolder"
+name: codegen-feature
 tools: [read, search, edit]
 argument-hint: "Décris la feature à créer (ex: 'annuler une commande dans le module order', 'ajouter un produit au catalogue')"
 ---
