@@ -1,1 +1,0 @@
-update-ca-certificates not called — the corporate CA is imported into the JDK truststore (keytool) but not into Alpine's system CA store, so wget (used by mvnw to download the wrapper JAR) still rejects the SSL cert.
