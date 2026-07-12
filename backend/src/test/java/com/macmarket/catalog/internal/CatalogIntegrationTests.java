@@ -3,6 +3,7 @@ package com.macmarket.catalog.internal;
 import java.math.BigDecimal;
 import java.util.Map;
 
+import com.macmarket.TestcontainersConfiguration;
 import com.macmarket.catalog.application.command.CreateProductCommand;
 import com.macmarket.catalog.application.command.UpdateProductCommand;
 import com.macmarket.catalog.application.service.CatalogQueryService;
@@ -14,6 +15,7 @@ import com.macmarket.catalog.domain.model.ProductNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @ActiveProfiles("dev")
+@Import(TestcontainersConfiguration.class)
 class CatalogIntegrationTests {
 
     @Autowired
