@@ -478,6 +478,69 @@ public record CreateOrderRequest(
 ) {}
 ```
 
+### Couche Présentation — documentation obligatoire des REST Controllers avec SpringDoc OpenAPI
+
+**Tous les `@RestController` DOIVENT être documentés avec les annotations SpringDoc OpenAPI. Aucune exception.**
+
+La version de SpringDoc OpenAPI à utiliser dépend du contexte Java/Spring Boot du projet — se référer à la matrice de compatibilité ci-dessous avant de configurer les dépendances. En l'absence de correspondance exacte, préférer la version antérieure (sécurité d'abord).
+
+| Spring Boot | Java | SpringDoc OpenAPI | Endpoint Swagger |
+|---|---|---|---|
+| 2.7.x | 11-17 | 1.7.x (EOL) | `/v3/api-docs` |
+| 3.0.x - 3.1.x | 17+ | 2.0.x - 2.8.x | `/v3/api-docs` |
+| 3.2.x - 3.3.x | 17+ | 2.3.x - 2.8.x | `/v3/api-docs` |
+| 4.0.x | 21+ | 3.0.x | `/v3/api-docs` |
+| 4.1.x+ | 25+ | 3.0.x - 3.1.x+ | `/v3/api-docs` |
+
+Configuration globale requise :
+- Un fichier `OpenApiConfig.java` centralisé avec `@Configuration`, `@OpenAPIDefinition` (titre, version, description, contact, serveurs) et `@SecurityScheme(name = "bearerAuth", type = HTTP, scheme = "bearer", bearerFormat = "JWT")`
+- Dépendance Maven `org.springdoc:springdoc-openapi-starter-webmvc-ui` (version compatible, voir matrice), et `<parameters>true</parameters>` dans `maven-compiler-plugin` (obligatoire depuis SB 3.2+)
+- `application.yml` (dev) expose `springdoc.swagger-ui.path` et `springdoc.api-docs.path` ; le profil de **production désactive** `springdoc.swagger-ui.enabled` et `springdoc.api-docs.enabled`
+- `SecurityConfig` : `permitAll` sur `GET /swagger-ui/**`, `GET /swagger-ui.html`, `GET /v3/api-docs/**`
+
+Annotations obligatoires par controller :
+
+| Annotation | Niveau | Obligatoire | Détail |
+|---|---|---|---|
+| `@Tag(name = "...")` | Classe | Oui | Groupe logique des endpoints |
+| `@SecurityRequirement(name = "bearerAuth")` | Classe ou méthode | Si protégé | Marque les endpoints nécessitant un JWT Bearer token |
+| `@Operation(summary = "...", description = "...")` | Méthode | Oui | Verbe HTTP, cas d'usage, données requises |
+| `@ApiResponse(responseCode = "2xx", description = "...")` | Méthode | Oui | Tous les codes HTTP possibles (200, 201, 204, 400, 403, 404, 500) |
+| `@ApiResponse(..., content = @Content(...))` | Méthode | Si réponse non-JSON | SSE, PDF, etc. |
+| `@Parameter(hidden = true)` | Paramètre | Pour `@AuthenticationPrincipal` | Exclure du Swagger — ce n'est pas un input utilisateur |
+| `@Parameter(description = "...", required = true)` | Paramètre | Pour inputs | Path, query, header, body |
+
+```java
+// REQUIS — controller REST documenté
+@RestController
+@RequestMapping("/api/orders")
+@Tag(name = "Orders", description = "Gestion des commandes")
+@SecurityRequirement(name = "bearerAuth")
+public class OrderController {
+
+    @PostMapping("/{id}/confirm")
+    @Operation(summary = "Confirmer une commande", description = "Confirme une commande en brouillon")
+    @ApiResponse(responseCode = "204", description = "Commande confirmée")
+    @ApiResponse(responseCode = "404", description = "Commande non trouvée")
+    public ResponseEntity<Void> confirm(
+        @Parameter(description = "Identifiant de la commande", required = true)
+        @PathVariable UUID id
+    ) {
+        confirmOrderService.confirm(new ConfirmOrderCommand(OrderId.of(id)));
+        return ResponseEntity.noContent().build();
+    }
+}
+```
+
+Vérification obligatoire en revue de code — rejeter le code et exiger les annotations avant acceptation si :
+- endpoint sans `@Operation`
+- endpoint sans code HTTP réponse documenté (`@ApiResponse`)
+- controller sans `@Tag`
+- endpoint protégé sans `@SecurityRequirement`
+- réponse non-JSON sans `@Content(mediaType = "...")`
+- paramètre sans `@Parameter(description = "...")`
+- `@AuthenticationPrincipal` visible dans Swagger (manque `@Parameter(hidden = true)`)
+
 ### Gestion des erreurs
 
 - Les exceptions métier sont définies dans le domaine et héritent de `DomainException`
