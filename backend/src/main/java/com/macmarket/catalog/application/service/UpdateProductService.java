@@ -6,6 +6,7 @@ import java.util.UUID;
 import com.macmarket.catalog.application.command.UpdateProductCommand;
 import com.macmarket.catalog.domain.model.*;
 import com.macmarket.catalog.domain.repository.ProductRepository;
+import com.macmarket.catalog.domain.service.ImageBackgroundColorExtractor;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,10 +17,13 @@ public class UpdateProductService {
 
     private final ProductRepository productRepository;
     private final DomainEventPublisher eventPublisher;
+    private final ImageBackgroundColorExtractor backgroundColorExtractor;
 
-    public UpdateProductService(ProductRepository productRepository, DomainEventPublisher eventPublisher) {
+    public UpdateProductService(ProductRepository productRepository, DomainEventPublisher eventPublisher,
+                                 ImageBackgroundColorExtractor backgroundColorExtractor) {
         this.productRepository = productRepository;
         this.eventPublisher = eventPublisher;
+        this.backgroundColorExtractor = backgroundColorExtractor;
     }
 
     public Product execute(UpdateProductCommand command) {
@@ -33,11 +37,15 @@ public class UpdateProductService {
                 .toList()
             : null;
 
+        var backgroundColor = command.imageUrl() != null
+            ? backgroundColorExtractor.extract(command.imageUrl())
+            : null;
+
         product.updateDetails(
             command.name(), command.description(), command.shortDesc(),
             command.price() != null ? Money.of(command.price()) : null,
             command.category() != null ? ProductCategory.valueOf(command.category()) : null,
-            command.imageUrl(), command.stockQuantity(), specs
+            command.imageUrl(), backgroundColor, command.stockQuantity(), specs
         );
         productRepository.save(product);
         eventPublisher.publish(product.pullDomainEvents());

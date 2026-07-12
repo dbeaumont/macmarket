@@ -40,6 +40,9 @@ public class ProductJpaEntity implements org.springframework.data.domain.Persist
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
+    @Column(name = "background_color", nullable = false, length = 7)
+    private String backgroundColor;
+
     @Column(name = "stock_quantity", nullable = false)
     private int stockQuantity;
 
@@ -81,6 +84,8 @@ public class ProductJpaEntity implements org.springframework.data.domain.Persist
     public void setCategory(String category) { this.category = category; }
     public String getImageUrl() { return imageUrl; }
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+    public String getBackgroundColor() { return backgroundColor; }
+    public void setBackgroundColor(String backgroundColor) { this.backgroundColor = backgroundColor; }
     public int getStockQuantity() { return stockQuantity; }
     public void setStockQuantity(int stockQuantity) { this.stockQuantity = stockQuantity; }
     public int getReservedQuantity() { return reservedQuantity; }

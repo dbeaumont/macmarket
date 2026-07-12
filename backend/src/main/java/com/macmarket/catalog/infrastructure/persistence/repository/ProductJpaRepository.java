@@ -34,6 +34,7 @@ class ProductJpaRepository implements ProductRepository {
             entity.setPrice(product.getPrice().amount());
             entity.setCategory(product.getCategory().name());
             entity.setImageUrl(product.getImageUrl());
+            entity.setBackgroundColor(product.getBackgroundColor().hex());
             entity.setStockQuantity(product.getStockQuantity());
             entity.setReservedQuantity(product.getReservedQuantity());
             entity.setActive(product.isActive());

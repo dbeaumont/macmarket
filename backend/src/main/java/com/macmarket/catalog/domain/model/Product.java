@@ -21,6 +21,7 @@ public class Product {
     private Money price;
     private ProductCategory category;
     private String imageUrl;
+    private BackgroundColor backgroundColor;
     private int stockQuantity;
     private int reservedQuantity;
     private boolean active;
@@ -29,7 +30,7 @@ public class Product {
     private final List<DomainEvent> domainEvents = new ArrayList<>();
 
     private Product(ProductId id, String name, String slug, String description, String shortDesc,
-                    Money price, ProductCategory category, String imageUrl,
+                    Money price, ProductCategory category, String imageUrl, BackgroundColor backgroundColor,
                     int stockQuantity, List<ProductSpec> specs, Instant createdAt) {
         if (name == null || name.isBlank()) {
             throw new DomainException("Le nom du produit est obligatoire");
@@ -45,6 +46,7 @@ public class Product {
         this.price = price;
         this.category = category;
         this.imageUrl = imageUrl;
+        this.backgroundColor = backgroundColor != null ? backgroundColor : BackgroundColor.DEFAULT;
         this.stockQuantity = stockQuantity;
         this.reservedQuantity = 0;
         this.active = true;
@@ -53,27 +55,27 @@ public class Product {
     }
 
     public static Product create(String name, String slug, String description, String shortDesc,
-                                  Money price, ProductCategory category, String imageUrl,
+                                  Money price, ProductCategory category, String imageUrl, BackgroundColor backgroundColor,
                                   int stockQuantity, List<ProductSpec> specs) {
         var product = new Product(ProductId.generate(), name, slug, description, shortDesc,
-            price, category, imageUrl, stockQuantity, specs, null);
+            price, category, imageUrl, backgroundColor, stockQuantity, specs, null);
         product.domainEvents.add(new ProductCreatedEvent(product.id, product.name, product.price));
         return product;
     }
 
     public static Product reconstitute(ProductId id, String name, String slug, String description,
                                         String shortDesc, Money price, ProductCategory category,
-                                        String imageUrl, int stockQuantity, int reservedQuantity,
+                                        String imageUrl, BackgroundColor backgroundColor, int stockQuantity, int reservedQuantity,
                                         boolean active, List<ProductSpec> specs, Instant createdAt) {
         var product = new Product(id, name, slug, description, shortDesc,
-            price, category, imageUrl, stockQuantity, specs, createdAt);
+            price, category, imageUrl, backgroundColor, stockQuantity, specs, createdAt);
         product.reservedQuantity = reservedQuantity;
         product.active = active;
         return product;
     }
 
     public void updateDetails(String name, String description, String shortDesc,
-                               Money price, ProductCategory category, String imageUrl,
+                               Money price, ProductCategory category, String imageUrl, BackgroundColor backgroundColor,
                                Integer stockQuantity, List<ProductSpec> specs) {
         if (name != null) this.name = name;
         if (description != null) this.description = description;
@@ -81,6 +83,7 @@ public class Product {
         if (price != null) this.price = price;
         if (category != null) this.category = category;
         if (imageUrl != null) this.imageUrl = imageUrl;
+        if (backgroundColor != null) this.backgroundColor = backgroundColor;
         if (stockQuantity != null) this.stockQuantity = stockQuantity;
         if (specs != null) this.specs = new ArrayList<>(specs);
         this.domainEvents.add(new ProductUpdatedEvent(this.id));
@@ -120,6 +123,7 @@ public class Product {
     public Money getPrice() { return price; }
     public ProductCategory getCategory() { return category; }
     public String getImageUrl() { return imageUrl; }
+    public BackgroundColor getBackgroundColor() { return backgroundColor; }
     public int getStockQuantity() { return stockQuantity; }
     public int getReservedQuantity() { return reservedQuantity; }
     public boolean isActive() { return active; }

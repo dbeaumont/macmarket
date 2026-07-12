@@ -46,6 +46,7 @@ export interface Product {
   readonly price: number;
   readonly category: string;
   readonly imageUrl: string;
+  readonly backgroundColor: string;
   readonly stockQuantity: number;
   readonly reservedQuantity: number;
   readonly active: boolean;

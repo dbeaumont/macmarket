@@ -29,6 +29,7 @@ public class ProductResponseMapper {
             product.getPrice().amount(),
             product.getCategory().name(),
             product.getImageUrl(),
+            product.getBackgroundColor().hex(),
             product.getStockQuantity(),
             product.getReservedQuantity(),
             product.isActive(),

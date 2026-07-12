@@ -26,6 +26,7 @@ public class ProductPersistenceMapper {
             Money.of(entity.getPrice()),
             ProductCategory.valueOf(entity.getCategory()),
             entity.getImageUrl(),
+            BackgroundColor.of(entity.getBackgroundColor()),
             entity.getStockQuantity(),
             entity.getReservedQuantity(),
             entity.isActive(),
@@ -44,6 +45,7 @@ public class ProductPersistenceMapper {
         entity.setPrice(product.getPrice().amount());
         entity.setCategory(product.getCategory().name());
         entity.setImageUrl(product.getImageUrl());
+        entity.setBackgroundColor(product.getBackgroundColor().hex());
         entity.setStockQuantity(product.getStockQuantity());
         entity.setReservedQuantity(product.getReservedQuantity());
         entity.setActive(product.isActive());

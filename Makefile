@@ -1,8 +1,8 @@
-.PHONY: help init up down restart logs status urls dev dev-down \
+.PHONY: help init up down restart logs status urls first-run dev dev-down \
         backend-run shop-run admin-run \
         build build-backend build-shop build-admin \
         test test-modularity test-frontend \
-        db-reset db-shell \
+        db-reset db-shell backfill-background-colors \
         ollama-status ollama-logs ollama-pull ollama-ensure \
         clean reset
 
@@ -104,6 +104,16 @@ urls: ## Lister toutes les URLs disponibles
 	@echo "╚══════════════════════════════════════════════════════════════╝"
 	@echo ""
 
+first-run: ## Tout enchainer pour une premiere execution (init + build + up + backfill)
+	@echo "🚀 Premiere execution : init, build, demarrage et initialisation des donnees..."
+	@$(MAKE) --no-print-directory init
+	@$(MAKE) --no-print-directory build
+	@$(MAKE) --no-print-directory up
+	@$(MAKE) --no-print-directory backfill-background-colors
+	@echo ""
+	@echo "✅ Stack prete pour la premiere utilisation"
+	@$(MAKE) --no-print-directory urls
+
 # === Docker Compose — Developpement ===
 
 dev: init ## Lancer uniquement l'infra (dev mode)
@@ -161,6 +171,11 @@ db-reset: ## Reinitialiser la base de donnees (supprime les donnees)
 
 db-shell: ## Ouvrir un shell psql dans le container postgres
 	$(COMPOSE) exec postgres psql -U macmarket -d macmarket
+
+backfill-background-colors: ## Recalculer la couleur de fond de tous les produits (one-shot)
+	$(COMPOSE) stop backend
+	$(COMPOSE) run --rm -e MACMARKET_CATALOG_BACKFILL_BACKGROUND_COLORS_ON_STARTUP=true backend
+	$(COMPOSE) up -d backend
 
 # === Ollama / LLM ===
 

@@ -14,6 +14,7 @@ public record ProductResponse(
     BigDecimal price,
     String category,
     String imageUrl,
+    String backgroundColor,
     int stockQuantity,
     int reservedQuantity,
     boolean active,

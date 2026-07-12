@@ -30,7 +30,10 @@ export function ProductCard({ product }: ProductCardProps) {
   return (
     <Card className="group overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
       <Link to={`/products/${product.slug}`}>
-        <div className="aspect-square overflow-hidden p-4" style={{ backgroundColor: '#F5F5F7' }}>
+        <div
+          className="aspect-square overflow-hidden rounded-t-xl p-4"
+          style={{ backgroundColor: product.backgroundColor, marginTop: 'calc(var(--card-spacing) * -1)' }}
+        >
           <img
             src={product.imageUrl}
             alt={product.name}

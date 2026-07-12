@@ -39,7 +39,10 @@ export function ProductDetailPage() {
       </Link>
 
       <div className="grid md:grid-cols-2 gap-12">
-        <div className="aspect-square overflow-hidden rounded-xl bg-muted/30 p-8">
+        <div
+          className="aspect-square overflow-hidden rounded-xl p-8"
+          style={{ backgroundColor: product.backgroundColor }}
+        >
           <img
             src={product.imageUrl}
             alt={product.name}
