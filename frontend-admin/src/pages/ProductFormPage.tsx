@@ -75,6 +75,7 @@ export function ProductFormPage() {
       imageUrl,
       stockQuantity: Number(stockQuantity),
       specs: specsRecord,
+      promotionPercentage: existingProduct?.promotionPercentage ?? 0,
     };
 
     if (isEdit) {

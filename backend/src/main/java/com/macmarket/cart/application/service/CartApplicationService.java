@@ -40,7 +40,7 @@ public class CartApplicationService {
     public Cart addItem(String userId, UUID productId, int quantity) {
         var product = catalogService.findById(ProductId.of(productId));
         var cart = getOrCreate(userId);
-        cart.addItem(productId, product.getName(), product.getImageUrl(), product.getPrice().amount(), quantity);
+        cart.addItem(productId, product.getName(), product.getImageUrl(), product.getDiscountedPrice().amount(), quantity);
         cartRepository.save(cart);
         return cart;
     }

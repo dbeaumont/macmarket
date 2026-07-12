@@ -46,6 +46,9 @@ public class ProductJpaEntity implements org.springframework.data.domain.Persist
     @Column(name = "reserved_quantity", nullable = false)
     private int reservedQuantity;
 
+    @Column(name = "promotion_percentage", nullable = false)
+    private int promotionPercentage;
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -85,6 +88,8 @@ public class ProductJpaEntity implements org.springframework.data.domain.Persist
     public void setStockQuantity(int stockQuantity) { this.stockQuantity = stockQuantity; }
     public int getReservedQuantity() { return reservedQuantity; }
     public void setReservedQuantity(int reservedQuantity) { this.reservedQuantity = reservedQuantity; }
+    public int getPromotionPercentage() { return promotionPercentage; }
+    public void setPromotionPercentage(int promotionPercentage) { this.promotionPercentage = promotionPercentage; }
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
     public Instant getCreatedAt() { return createdAt; }

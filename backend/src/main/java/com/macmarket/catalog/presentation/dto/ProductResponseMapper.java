@@ -33,6 +33,8 @@ public class ProductResponseMapper {
             product.getReservedQuantity(),
             product.isActive(),
             specs,
+            product.getPromotionRate().percentage(),
+            product.getDiscountedPrice().amount(),
             product.getCreatedAt()
         );
     }

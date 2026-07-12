@@ -13,5 +13,6 @@ public record UpdateProductCommand(
     String category,
     String imageUrl,
     Integer stockQuantity,
-    Map<String, String> specs
+    Map<String, String> specs,
+    Integer promotionPercentage
 ) {}

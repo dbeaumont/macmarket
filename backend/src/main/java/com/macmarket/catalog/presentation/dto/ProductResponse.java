@@ -18,5 +18,7 @@ public record ProductResponse(
     int reservedQuantity,
     boolean active,
     Map<String, String> specs,
+    int promotionPercentage,
+    BigDecimal discountedPrice,
     Instant createdAt
 ) {}

@@ -106,7 +106,7 @@ class CatalogIntegrationTests {
 
         var updateCmd = new UpdateProductCommand(
             created.getId().value(), "Updated DDD Name", null, null,
-            new BigDecimal("600"), null, null, 20, null
+            new BigDecimal("600"), null, null, 20, null, null
         );
         var updated = updateProductService.execute(updateCmd);
 

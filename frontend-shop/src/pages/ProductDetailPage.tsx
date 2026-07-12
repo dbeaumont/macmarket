@@ -4,6 +4,8 @@ import { useCartStore } from '@/stores/cart-store';
 import { ProductDetailSkeleton } from '@/components/ui/loading-skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { PromoBadge } from '@/components/product/PromoBadge';
+import { PriceDisplay } from '@/components/product/PriceDisplay';
 import { ShoppingCart, ArrowLeft } from 'lucide-react';
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -39,7 +41,8 @@ export function ProductDetailPage() {
       </Link>
 
       <div className="grid md:grid-cols-2 gap-12">
-        <div className="aspect-square overflow-hidden rounded-xl bg-muted/30 p-8">
+        <div className="relative aspect-square overflow-hidden rounded-xl bg-muted/30 p-8">
+          <PromoBadge percentage={product.promotionPercentage} />
           <img
             src={product.imageUrl}
             alt={product.name}
@@ -55,9 +58,12 @@ export function ProductDetailPage() {
           <p className="mt-2 text-muted-foreground">{product.shortDesc}</p>
 
           <div className="mt-6">
-            <span className="text-4xl font-bold">
-              {product.price.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
-            </span>
+            <PriceDisplay
+              price={product.price}
+              discountedPrice={product.discountedPrice}
+              promotionPercentage={product.promotionPercentage}
+              size="lg"
+            />
           </div>
 
           <div className="mt-4 text-sm">

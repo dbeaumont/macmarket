@@ -1,5 +1,7 @@
 package com.macmarket.catalog.domain.model;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,12 +27,13 @@ public class Product {
     private int reservedQuantity;
     private boolean active;
     private List<ProductSpec> specs;
+    private PromotionRate promotionRate;
     private final Instant createdAt;
     private final List<DomainEvent> domainEvents = new ArrayList<>();
 
     private Product(ProductId id, String name, String slug, String description, String shortDesc,
                     Money price, ProductCategory category, String imageUrl,
-                    int stockQuantity, List<ProductSpec> specs, Instant createdAt) {
+                    int stockQuantity, List<ProductSpec> specs, PromotionRate promotionRate, Instant createdAt) {
         if (name == null || name.isBlank()) {
             throw new DomainException("Le nom du produit est obligatoire");
         }
@@ -49,6 +52,7 @@ public class Product {
         this.reservedQuantity = 0;
         this.active = true;
         this.specs = new ArrayList<>(specs != null ? specs : List.of());
+        this.promotionRate = promotionRate != null ? promotionRate : PromotionRate.NONE;
         this.createdAt = createdAt != null ? createdAt : Instant.now();
     }
 
@@ -56,7 +60,7 @@ public class Product {
                                   Money price, ProductCategory category, String imageUrl,
                                   int stockQuantity, List<ProductSpec> specs) {
         var product = new Product(ProductId.generate(), name, slug, description, shortDesc,
-            price, category, imageUrl, stockQuantity, specs, null);
+            price, category, imageUrl, stockQuantity, specs, PromotionRate.NONE, null);
         product.domainEvents.add(new ProductCreatedEvent(product.id, product.name, product.price));
         return product;
     }
@@ -64,9 +68,10 @@ public class Product {
     public static Product reconstitute(ProductId id, String name, String slug, String description,
                                         String shortDesc, Money price, ProductCategory category,
                                         String imageUrl, int stockQuantity, int reservedQuantity,
-                                        boolean active, List<ProductSpec> specs, Instant createdAt) {
+                                        boolean active, List<ProductSpec> specs, PromotionRate promotionRate,
+                                        Instant createdAt) {
         var product = new Product(id, name, slug, description, shortDesc,
-            price, category, imageUrl, stockQuantity, specs, createdAt);
+            price, category, imageUrl, stockQuantity, specs, promotionRate, createdAt);
         product.reservedQuantity = reservedQuantity;
         product.active = active;
         return product;
@@ -74,7 +79,7 @@ public class Product {
 
     public void updateDetails(String name, String description, String shortDesc,
                                Money price, ProductCategory category, String imageUrl,
-                               Integer stockQuantity, List<ProductSpec> specs) {
+                               Integer stockQuantity, List<ProductSpec> specs, PromotionRate promotionRate) {
         if (name != null) this.name = name;
         if (description != null) this.description = description;
         if (shortDesc != null) this.shortDesc = shortDesc;
@@ -83,6 +88,7 @@ public class Product {
         if (imageUrl != null) this.imageUrl = imageUrl;
         if (stockQuantity != null) this.stockQuantity = stockQuantity;
         if (specs != null) this.specs = new ArrayList<>(specs);
+        if (promotionRate != null) this.promotionRate = promotionRate;
         this.domainEvents.add(new ProductUpdatedEvent(this.id));
     }
 
@@ -124,7 +130,17 @@ public class Product {
     public int getReservedQuantity() { return reservedQuantity; }
     public boolean isActive() { return active; }
     public List<ProductSpec> getSpecs() { return Collections.unmodifiableList(specs); }
+    public PromotionRate getPromotionRate() { return promotionRate; }
     public Instant getCreatedAt() { return createdAt; }
+
+    public Money getDiscountedPrice() {
+        if (!promotionRate.isActive()) {
+            return price;
+        }
+        var multiplier = BigDecimal.valueOf(100 - promotionRate.percentage())
+            .divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+        return Money.of(price.amount().multiply(multiplier).setScale(2, RoundingMode.HALF_UP));
+    }
 
     public List<DomainEvent> pullDomainEvents() {
         var events = List.copyOf(domainEvents);

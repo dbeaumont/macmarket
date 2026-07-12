@@ -7,7 +7,7 @@ import {
   flexRender,
 } from '@tanstack/react-table';
 import type { Product } from '@/lib/api';
-import { useInventory } from '@/hooks/use-inventory';
+import { useInventory, useUpdatePromotion } from '@/hooks/use-inventory';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StockBadge } from '@/components/shared/StockBadge';
@@ -15,6 +15,38 @@ import { Plus, Pencil, Search } from 'lucide-react';
 
 function formatCurrency(value: number): string {
   return value.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+}
+
+const PROMO_OPTIONS = [
+  { value: 0, label: 'Aucune' },
+  { value: 5, label: '-5%' },
+  { value: 10, label: '-10%' },
+  { value: 15, label: '-15%' },
+] as const;
+
+interface PromoCellProps {
+  readonly product: Product;
+}
+
+function PromoCell({ product }: PromoCellProps) {
+  const updatePromotion = useUpdatePromotion();
+
+  return (
+    <select
+      value={product.promotionPercentage}
+      disabled={updatePromotion.isPending}
+      onChange={(e) =>
+        updatePromotion.mutate({ product, promotionPercentage: Number(e.target.value) })
+      }
+      className="text-sm border rounded-lg px-2 py-1.5 bg-background focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
+    >
+      {PROMO_OPTIONS.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  );
 }
 
 const columnHelper = createColumnHelper<Product>();
@@ -41,6 +73,10 @@ const columns = [
   columnHelper.accessor('price', {
     header: 'Prix',
     cell: (info) => formatCurrency(info.getValue()),
+  }),
+  columnHelper.accessor('promotionPercentage', {
+    header: 'Promo',
+    cell: (info) => <PromoCell product={info.row.original} />,
   }),
   columnHelper.accessor('stockQuantity', {
     header: 'Stock',

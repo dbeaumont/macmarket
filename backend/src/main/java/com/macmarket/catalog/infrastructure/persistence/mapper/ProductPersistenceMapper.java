@@ -30,6 +30,7 @@ public class ProductPersistenceMapper {
             entity.getReservedQuantity(),
             entity.isActive(),
             specs,
+            PromotionRate.of(entity.getPromotionPercentage()),
             entity.getCreatedAt()
         );
     }
@@ -47,6 +48,7 @@ public class ProductPersistenceMapper {
         entity.setStockQuantity(product.getStockQuantity());
         entity.setReservedQuantity(product.getReservedQuantity());
         entity.setActive(product.isActive());
+        entity.setPromotionPercentage(product.getPromotionRate().percentage());
 
         var specs = IntStream.range(0, product.getSpecs().size())
             .mapToObj(i -> {

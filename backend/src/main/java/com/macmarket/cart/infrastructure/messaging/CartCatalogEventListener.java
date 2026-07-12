@@ -29,7 +29,7 @@ class CartCatalogEventListener {
             event.productId().value(),
             product.getName(),
             product.getImageUrl(),
-            product.getPrice().amount()
+            product.getDiscountedPrice().amount()
         );
         if (updated > 0) {
             log.info("Refreshed {} cart item(s) for product {}", updated, event.productId());

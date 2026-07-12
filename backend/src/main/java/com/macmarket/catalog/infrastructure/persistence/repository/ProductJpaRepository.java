@@ -37,6 +37,7 @@ class ProductJpaRepository implements ProductRepository {
             entity.setStockQuantity(product.getStockQuantity());
             entity.setReservedQuantity(product.getReservedQuantity());
             entity.setActive(product.isActive());
+            entity.setPromotionPercentage(product.getPromotionRate().percentage());
             springData.save(entity);
         } else {
             var entity = mapper.toJpa(product);
@@ -59,7 +60,8 @@ class ProductJpaRepository implements ProductRepository {
     public ProductPage findAll(ProductQueryCriteria criteria) {
         var sortDir = "desc".equalsIgnoreCase(criteria.sortDirection()) ? Sort.Direction.DESC : Sort.Direction.ASC;
         var sortField = mapSortField(criteria.sortField());
-        var pageable = PageRequest.of(criteria.page(), criteria.size(), Sort.by(sortDir, sortField));
+        var sort = Sort.by(sortDir, sortField).and(Sort.by(Sort.Direction.ASC, "id"));
+        var pageable = PageRequest.of(criteria.page(), criteria.size(), sort);
 
         var page = springData.findFiltered(
             criteria.active(),

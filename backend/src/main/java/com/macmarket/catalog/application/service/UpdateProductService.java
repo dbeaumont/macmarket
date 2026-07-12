@@ -37,7 +37,8 @@ public class UpdateProductService {
             command.name(), command.description(), command.shortDesc(),
             command.price() != null ? Money.of(command.price()) : null,
             command.category() != null ? ProductCategory.valueOf(command.category()) : null,
-            command.imageUrl(), command.stockQuantity(), specs
+            command.imageUrl(), command.stockQuantity(), specs,
+            command.promotionPercentage() != null ? PromotionRate.of(command.promotionPercentage()) : null
         );
         productRepository.save(product);
         eventPublisher.publish(product.pullDomainEvents());

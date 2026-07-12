@@ -14,5 +14,6 @@ public record UpdateProductRequest(
     @Size(max = 500) String imageUrl,
     Integer stockQuantity,
     Boolean active,
-    Map<String, String> specs
+    Map<String, String> specs,
+    Integer promotionPercentage
 ) {}

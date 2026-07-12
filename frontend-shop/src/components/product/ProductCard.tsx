@@ -4,6 +4,8 @@ import { useCartStore } from '@/stores/cart-store';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { PromoBadge } from '@/components/product/PromoBadge';
+import { PriceDisplay } from '@/components/product/PriceDisplay';
 import { ShoppingCart } from 'lucide-react';
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -28,7 +30,8 @@ export function ProductCard({ product }: ProductCardProps) {
   };
 
   return (
-    <Card className="group overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
+    <Card className="group relative overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
+      <PromoBadge percentage={product.promotionPercentage} />
       <Link to={`/products/${product.slug}`}>
         <div
           className="aspect-square overflow-hidden rounded-t-xl p-4"
@@ -62,9 +65,11 @@ export function ProductCard({ product }: ProductCardProps) {
           {product.shortDesc}
         </p>
         <div className="mt-3 flex items-center justify-between">
-          <span className="text-lg font-bold">
-            {product.price.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
-          </span>
+          <PriceDisplay
+            price={product.price}
+            discountedPrice={product.discountedPrice}
+            promotionPercentage={product.promotionPercentage}
+          />
           <Button size="sm" variant="outline" disabled={available <= 0} onClick={handleAddToCart}>
             <ShoppingCart className="mr-1 h-4 w-4" />
             {available > 0 ? 'Ajouter' : 'Rupture'}

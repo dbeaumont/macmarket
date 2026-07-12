@@ -50,6 +50,8 @@ export interface Product {
   readonly reservedQuantity: number;
   readonly active: boolean;
   readonly specs: Readonly<Record<string, string>>;
+  readonly promotionPercentage: number;
+  readonly discountedPrice: number;
   readonly createdAt: string;
 }
 

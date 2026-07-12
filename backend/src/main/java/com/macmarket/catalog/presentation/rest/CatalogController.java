@@ -109,7 +109,7 @@ class CatalogController {
         var command = new UpdateProductCommand(
             id, request.name(), request.description(), request.shortDesc(),
             request.price(), request.category(), request.imageUrl(),
-            request.stockQuantity(), request.specs()
+            request.stockQuantity(), request.specs(), request.promotionPercentage()
         );
         var product = updateProductService.execute(command);
         return ResponseEntity.ok(responseMapper.toResponse(product));
