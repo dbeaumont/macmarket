@@ -1,0 +1,83 @@
+<!-- Overlay -->
+<div
+  class="fixed inset-0 bg-black/40 z-40 transition-opacity duration-300"
+  [class.opacity-0]="!drawerService.isOpen()"
+  [class.pointer-events-none]="!drawerService.isOpen()"
+  (click)="close()">
+</div>
+
+<!-- Drawer -->
+<div class="fixed right-0 top-0 bottom-0 w-full max-w-md bg-white z-50 shadow-2xl flex flex-col transition-transform duration-300"
+     [class.translate-x-full]="!drawerService.isOpen()">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between p-4 border-b border-gray-200">
+    <h2 class="font-bold text-lg flex items-center gap-2">
+      <mat-icon>shopping_cart</mat-icon>
+      Mon panier
+    </h2>
+    <button mat-icon-button (click)="close()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Items -->
+  <div class="flex-1 overflow-auto p-4">
+    @if (!cartService.cart() || cartService.cart()!.items.length === 0) {
+      <div class="text-center text-gray-400 py-12">
+        <mat-icon class="text-6xl opacity-30 block mb-3">shopping_cart</mat-icon>
+        <p>Votre panier est vide</p>
+      </div>
+    } @else {
+      <div class="space-y-4">
+        @for (item of cartService.cart()!.items; track trackByProductId($index, item)) {
+          <div class="flex gap-3 items-start">
+            <img [src]="item.productImage" [alt]="item.productName"
+                 class="w-16 h-16 object-contain rounded-lg bg-gray-50 flex-shrink-0" />
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-gray-900 truncate">{{ item.productName }}</p>
+              <p class="text-sm text-gray-500">{{ item.unitPrice | currency:'EUR':'symbol':'1.0-0':'fr' }}</p>
+              <div class="flex items-center gap-2 mt-1">
+                <button mat-icon-button class="w-7 h-7 min-w-0"
+                        (click)="updateQuantity(item, item.quantity - 1)">
+                  <mat-icon class="text-base">remove</mat-icon>
+                </button>
+                <span class="text-sm font-medium w-6 text-center">{{ item.quantity }}</span>
+                <button mat-icon-button class="w-7 h-7 min-w-0"
+                        (click)="updateQuantity(item, item.quantity + 1)">
+                  <mat-icon class="text-base">add</mat-icon>
+                </button>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-bold">{{ item.subtotal | currency:'EUR':'symbol':'1.0-0':'fr' }}</p>
+              <button mat-icon-button class="w-8 h-8 min-w-0 text-gray-400 hover:text-red-500"
+                      (click)="removeItem(item.productId)">
+                <mat-icon class="text-base">delete</mat-icon>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Footer -->
+  @if (cartService.cart() && cartService.cart()!.items.length > 0) {
+    <div class="border-t border-gray-200 p-4 space-y-3">
+      <div class="flex justify-between text-lg font-bold">
+        <span>Total</span>
+        <span>{{ cartService.total() | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+      </div>
+      <a routerLink="/checkout" (click)="close()"
+         class="block w-full text-center bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
+        Passer commande
+      </a>
+      <button (click)="clearCart()"
+              class="flex items-center justify-center gap-1 w-full text-sm text-gray-400 hover:text-red-500 transition-colors">
+        <mat-icon class="text-sm">delete_sweep</mat-icon>
+        Vider le panier
+      </button>
+    </div>
+  }
+</div>

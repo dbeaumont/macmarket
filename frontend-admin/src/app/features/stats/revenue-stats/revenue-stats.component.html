@@ -1,0 +1,52 @@
+<div class="space-y-6">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <a routerLink="/stats" class="text-gray-500 hover:text-gray-900"><mat-icon>chevron_left</mat-icon></a>
+      <h1 class="text-2xl font-bold text-gray-900">Revenus</h1>
+    </div>
+    <mat-form-field appearance="outline" class="w-36">
+      <mat-select [(ngModel)]="period" (ngModelChange)="load()">
+        @for (p of periods; track p.value) {
+          <mat-option [value]="p.value">{{ p.label }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16"><mat-spinner [diameter]="48" /></div>
+  } @else if (data()) {
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-3xl font-bold text-gray-900">{{ data()!.totalRevenue | currency:'EUR':'symbol':'1.0-0':'fr' }}</p>
+        <p class="text-sm text-gray-500">Chiffre d'affaires</p>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-3xl font-bold text-gray-900">{{ data()!.orderCount }}</p>
+        <p class="text-sm text-gray-500">Commandes</p>
+      </div>
+      <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
+        <p class="text-3xl font-bold text-gray-900">{{ data()!.averageOrderValue | currency:'EUR':'symbol':'1.0-0':'fr' }}</p>
+        <p class="text-sm text-gray-500">Panier moyen</p>
+      </div>
+    </div>
+
+    <!-- Chart (simple bar visualization) -->
+    <div class="bg-white rounded-xl border border-gray-200 p-4">
+      <h3 class="font-semibold text-gray-800 mb-4">Évolution du CA</h3>
+      <div class="space-y-2">
+        @for (point of data()!.chart; track point.date) {
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-gray-400 w-20 flex-shrink-0">{{ point.date }}</span>
+            <div class="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+              <div class="h-full bg-green-500 rounded-full"
+                   [style.width.%]="data()!.totalRevenue > 0 ? (point.revenue / data()!.totalRevenue * 100) : 0">
+              </div>
+            </div>
+            <span class="text-xs font-medium text-gray-700 w-20 text-right">{{ point.revenue | currency:'EUR':'symbol':'1.0-0':'fr' }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

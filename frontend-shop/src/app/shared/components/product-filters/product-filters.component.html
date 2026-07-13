@@ -1,0 +1,35 @@
+<div class="flex flex-wrap gap-3 items-end">
+  <mat-form-field appearance="outline" class="min-w-48">
+    <mat-label>Rechercher</mat-label>
+    <input matInput [(ngModel)]="search" (ngModelChange)="emit()" placeholder="MacBook Air, M4..." />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="min-w-40">
+    <mat-label>Catégorie</mat-label>
+    <mat-select [(ngModel)]="category" (ngModelChange)="emit()">
+      <mat-option value="">Toutes</mat-option>
+      @for (cat of categories(); track cat.category) {
+        <mat-option [value]="cat.category">
+          {{ categoryLabels[cat.category] ?? cat.category }} ({{ cat.count }})
+        </mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="min-w-44">
+    <mat-label>Trier par</mat-label>
+    <mat-select [(ngModel)]="sort" (ngModelChange)="emit()">
+      @for (opt of sortOptions; track opt.value) {
+        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  @if (search || category) {
+    <button mat-stroked-button (click)="reset()">
+      <mat-icon>clear</mat-icon>
+      Réinitialiser
+    </button>
+  }
+</div>

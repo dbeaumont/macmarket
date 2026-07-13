@@ -1,0 +1,79 @@
+<header class="sticky top-0 z-50 border-b border-gray-200 bg-white/95 backdrop-blur">
+  <div class="container mx-auto flex h-16 items-center justify-between px-4">
+    <!-- Logo -->
+    <a routerLink="/" class="flex items-center gap-2 font-bold text-xl text-gray-900 hover:text-gray-700">
+      <mat-icon>laptop_mac</mat-icon>
+      <span>MacMarket</span>
+    </a>
+
+    <!-- Navigation desktop -->
+    <nav class="hidden md:flex items-center gap-6">
+      <a routerLink="/products"
+         class="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">
+        Catalogue
+      </a>
+      @if (isAuthenticated()) {
+        <a routerLink="/orders"
+           class="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors">
+          Mes commandes
+        </a>
+      }
+    </nav>
+
+    <!-- Actions -->
+    <div class="flex items-center gap-2">
+      <!-- Menu mobile -->
+      <button class="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              (click)="toggleMobileMenu()"
+              aria-label="Menu">
+        <mat-icon>{{ mobileMenuOpen() ? 'close' : 'menu' }}</mat-icon>
+      </button>
+
+      <!-- Cart button -->
+      <button class="relative p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              (click)="openCart()"
+              aria-label="Mon panier">
+        <mat-icon>shopping_cart</mat-icon>
+        @if (itemCount() > 0) {
+          <span class="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">
+            {{ itemCount() > 9 ? '9+' : itemCount() }}
+          </span>
+        }
+      </button>
+
+      <!-- Auth -->
+      @if (isAuthenticated()) {
+        <a routerLink="/account"
+           class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm hover:bg-gray-100 transition-colors">
+          <mat-icon class="text-base">person</mat-icon>
+          <span>{{ userName() || 'Compte' }}</span>
+        </a>
+        <button mat-icon-button (click)="logout()" title="Se déconnecter" class="text-gray-500">
+          <mat-icon>logout</mat-icon>
+        </button>
+      } @else {
+        <button mat-stroked-button (click)="login()" class="text-sm">
+          Se connecter
+        </button>
+      }
+    </div>
+  </div>
+</header>
+
+<!-- Menu mobile -->
+@if (mobileMenuOpen()) {
+  <div class="border-b border-gray-200 bg-white md:hidden">
+    <nav class="container mx-auto flex flex-col px-4 py-3 gap-2">
+      <a routerLink="/products" (click)="closeMobileMenu()"
+         class="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors py-2">
+        Catalogue
+      </a>
+      @if (isAuthenticated()) {
+        <a routerLink="/orders" (click)="closeMobileMenu()"
+           class="text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors py-2">
+          Mes commandes
+        </a>
+      }
+    </nav>
+  </div>
+}

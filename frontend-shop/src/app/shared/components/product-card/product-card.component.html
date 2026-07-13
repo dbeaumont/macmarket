@@ -1,0 +1,63 @@
+<div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white transition-all hover:shadow-lg hover:-translate-y-1">
+  <!-- Promo badge -->
+  @if (product().promotionPercentage > 0) {
+    <span class="absolute top-3 left-3 z-10 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+      -{{ product().promotionPercentage }}%
+    </span>
+  }
+
+  <!-- Image -->
+  <a [routerLink]="['/products', product().slug]">
+    <div class="aspect-square overflow-hidden p-4 bg-gray-50">
+      <img [src]="product().imageUrl" [alt]="product().name"
+           class="h-full w-full object-contain transition-transform group-hover:scale-105"
+           loading="lazy" />
+    </div>
+  </a>
+
+  <!-- Content -->
+  <div class="p-4">
+    <div class="flex items-start justify-between gap-2 mb-2">
+      <span class="inline-block text-xs font-medium px-2 py-0.5 bg-gray-100 text-gray-700 rounded-full">
+        {{ categoryLabel }}
+      </span>
+      @if (available < 10 && available > 0) {
+        <span class="inline-block text-xs font-medium px-2 py-0.5 bg-red-100 text-red-700 rounded-full">
+          Plus que {{ available }}
+        </span>
+      }
+    </div>
+
+    <a [routerLink]="['/products', product().slug]">
+      <h3 class="font-semibold text-sm line-clamp-2 hover:text-blue-600 transition-colors text-gray-900">
+        {{ product().name }}
+      </h3>
+    </a>
+    <p class="mt-1 text-xs text-gray-500 line-clamp-1">{{ product().shortDesc }}</p>
+
+    <div class="mt-3 flex items-center justify-between">
+      <!-- Price -->
+      <div>
+        @if (product().promotionPercentage > 0) {
+          <div class="flex flex-col">
+            <span class="text-sm font-bold text-gray-900">
+              {{ product().discountedPrice | currency:'EUR':'symbol':'1.0-0':'fr' }}
+            </span>
+            <span class="text-xs text-gray-400 line-through">
+              {{ product().price | currency:'EUR':'symbol':'1.0-0':'fr' }}
+            </span>
+          </div>
+        } @else {
+          <span class="text-sm font-bold text-gray-900">
+            {{ product().price | currency:'EUR':'symbol':'1.0-0':'fr' }}
+          </span>
+        }
+      </div>
+
+      <button mat-stroked-button color="primary" [disabled]="available <= 0" (click)="addToCart()">
+        <mat-icon class="text-sm">shopping_cart</mat-icon>
+        {{ available > 0 ? 'Ajouter' : 'Rupture' }}
+      </button>
+    </div>
+  </div>
+</div>

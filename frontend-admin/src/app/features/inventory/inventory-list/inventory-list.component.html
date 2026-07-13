@@ -1,0 +1,91 @@
+<div class="space-y-4">
+  <div class="flex items-center justify-between">
+    <h1 class="text-2xl font-bold text-gray-900">Inventaire</h1>
+    <a routerLink="/inventory/new" mat-raised-button color="primary">
+      <mat-icon>add</mat-icon>
+      Nouveau produit
+    </a>
+  </div>
+
+  <!-- Search -->
+  <mat-form-field appearance="outline" class="w-full max-w-sm">
+    <mat-label>Rechercher</mat-label>
+    <input matInput [(ngModel)]="search" (ngModelChange)="onSearchChange()" placeholder="Nom du produit..." />
+    <mat-icon matSuffix>search</mat-icon>
+  </mat-form-field>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16"><mat-spinner [diameter]="48" /></div>
+  } @else {
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
+          <tr>
+            <th class="px-4 py-3 text-left">Produit</th>
+            <th class="px-4 py-3 text-left">Catégorie</th>
+            <th class="px-4 py-3 text-right">Prix</th>
+            <th class="px-4 py-3 text-right">Stock</th>
+            <th class="px-4 py-3 text-center">Promo %</th>
+            <th class="px-4 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of products(); track p.id) {
+            <tr class="border-t border-gray-100 hover:bg-gray-50">
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-3">
+                  <img [src]="p.imageUrl" [alt]="p.name" class="w-10 h-10 object-contain rounded bg-gray-50" />
+                  <div>
+                    <p class="font-medium text-gray-900">{{ p.name }}</p>
+                    <p class="text-xs text-gray-400">{{ p.slug }}</p>
+                  </div>
+                </div>
+              </td>
+              <td class="px-4 py-3 text-gray-600">{{ categoryLabels[p.category] ?? p.category }}</td>
+              <td class="px-4 py-3 text-right font-medium">{{ p.price | currency:'EUR':'symbol':'1.0-0':'fr' }}</td>
+              <td class="px-4 py-3 text-right font-medium" [class]="stockClass(p)">
+                {{ p.stockQuantity - p.reservedQuantity }}
+              </td>
+              <td class="px-4 py-3 text-center">
+                <select class="border border-gray-200 rounded px-2 py-1 text-xs"
+                        [value]="p.promotionPercentage"
+                        (change)="updatePromo(p, +($any($event.target).value))">
+                  <option value="0">0%</option>
+                  <option value="5">5%</option>
+                  <option value="10">10%</option>
+                  <option value="15">15%</option>
+                  <option value="20">20%</option>
+                  <option value="25">25%</option>
+                  <option value="30">30%</option>
+                </select>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <div class="flex justify-end gap-1">
+                  <a [routerLink]="['/inventory', p.id, 'edit']" mat-icon-button title="Modifier">
+                    <mat-icon class="text-gray-500">edit</mat-icon>
+                  </a>
+                  <button mat-icon-button (click)="deleteProduct(p.id, p.name)" title="Supprimer">
+                    <mat-icon class="text-red-400">delete</mat-icon>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="flex items-center justify-between">
+        <button mat-stroked-button [disabled]="page === 0" (click)="prevPage()">
+          <mat-icon>chevron_left</mat-icon> Précédent
+        </button>
+        <span class="text-sm text-gray-500">Page {{ page + 1 }} / {{ totalPages() }} ({{ totalElements() }})</span>
+        <button mat-stroked-button [disabled]="page >= totalPages() - 1" (click)="nextPage()">
+          Suivant <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    }
+  }
+</div>

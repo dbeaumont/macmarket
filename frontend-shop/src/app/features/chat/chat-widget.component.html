@@ -1,0 +1,99 @@
+<!-- Floating button -->
+<button class="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-blue-600 text-white shadow-lg flex items-center justify-center hover:bg-blue-700 transition-colors z-50"
+        (click)="toggle()"
+        aria-label="Assistant IA">
+  <mat-icon>{{ isOpen() ? 'close' : 'smart_toy' }}</mat-icon>
+</button>
+
+<!-- Chat panel -->
+@if (isOpen()) {
+  <div class="fixed bottom-24 right-6 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col z-50 max-h-[70vh]">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b border-gray-200">
+      <div class="flex items-center gap-2">
+        <mat-icon class="text-blue-600">smart_toy</mat-icon>
+        <span class="font-semibold text-gray-900">Assistant MacMarket</span>
+      </div>
+      <div class="flex gap-1">
+        @if (chatService.messages().length > 0) {
+          <button mat-icon-button (click)="clearChat()" title="Effacer l'historique">
+            <mat-icon class="text-sm">delete_sweep</mat-icon>
+          </button>
+        }
+        <button mat-icon-button (click)="toggle()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="flex-1 overflow-auto p-4 space-y-3 min-h-0">
+      @if (chatService.messages().length === 0) {
+        <p class="text-sm text-gray-400 text-center py-4">
+          Posez une question sur nos produits Mac !
+        </p>
+      }
+      @for (msg of chatService.messages(); track $index) {
+        <div [class.flex-row-reverse]="msg.role === 'user'" class="flex gap-2 items-start">
+          <div class="rounded-2xl px-3 py-2 max-w-[85%] text-sm"
+               [class.bg-blue-600]="msg.role === 'user'"
+               [class.text-white]="msg.role === 'user'"
+               [class.bg-gray-100]="msg.role === 'assistant'"
+               [class.text-gray-900]="msg.role === 'assistant'">
+            {{ msg.content }}
+            @if (msg.role === 'assistant' && msg.content === '' && chatService.isStreaming()) {
+              <span class="inline-block w-1.5 h-3.5 bg-blue-600 animate-pulse ml-0.5"></span>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Suggestions -->
+      @if (chatService.suggestions().length > 0) {
+        <div class="mt-2">
+          <p class="text-xs text-gray-400 mb-2">Produits suggérés :</p>
+          @for (s of chatService.suggestions(); track s.slug) {
+            <div class="flex items-center gap-2 p-2 rounded-lg border border-gray-200 mb-2">
+              <img [src]="s.imageUrl" [alt]="s.name" class="w-10 h-10 object-contain rounded bg-gray-50" />
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-medium text-gray-900 truncate">{{ s.name }}</p>
+                <p class="text-xs text-gray-500">{{ s.price }}</p>
+              </div>
+              <a [routerLink]="['/products', s.slug]" (click)="toggle()"
+                 class="text-blue-600 hover:text-blue-800">
+                <mat-icon class="text-sm">open_in_new</mat-icon>
+              </a>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Error -->
+      @if (chatService.error()) {
+        <p class="text-xs text-red-500 text-center">{{ chatService.error() }}</p>
+      }
+
+      <div #messagesEnd></div>
+    </div>
+
+    <!-- Input -->
+    <div class="p-3 border-t border-gray-200 flex gap-2 items-end">
+      <textarea
+        class="flex-1 resize-none text-sm rounded-lg border border-gray-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 max-h-24"
+        placeholder="Votre message..."
+        [(ngModel)]="inputMessage"
+        (keydown)="onKeydown($event)"
+        rows="1">
+      </textarea>
+      @if (chatService.isStreaming()) {
+        <button mat-icon-button (click)="stop()" class="text-red-500">
+          <mat-icon>stop_circle</mat-icon>
+        </button>
+      } @else {
+        <button mat-icon-button [disabled]="!inputMessage.trim()" (click)="send()">
+          <mat-icon class="text-blue-600">send</mat-icon>
+        </button>
+      }
+    </div>
+  </div>
+}

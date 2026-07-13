@@ -1,0 +1,38 @@
+<div class="container mx-auto px-4 py-8">
+  <h1 class="text-3xl font-bold text-gray-900 mb-6">Catalogue</h1>
+
+  <div class="mb-6">
+    <app-product-filters [categories]="categories()" (filtersChange)="onFiltersChange($event)" />
+  </div>
+
+  @if (loading()) {
+    <div class="flex justify-center py-16">
+      <mat-spinner [diameter]="48" />
+    </div>
+  } @else if (products().length === 0) {
+    <div class="text-center py-16 text-gray-400">
+      <mat-icon class="text-6xl opacity-30 block mb-3">search_off</mat-icon>
+      <p class="text-lg">Aucun produit trouvé</p>
+    </div>
+  } @else {
+    <app-product-grid [products]="products()" />
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="flex items-center justify-between mt-8">
+        <button mat-stroked-button [disabled]="page === 0" (click)="prevPage()">
+          <mat-icon>chevron_left</mat-icon>
+          Précédent
+        </button>
+        <span class="text-sm text-gray-500">
+          Page {{ page + 1 }} sur {{ totalPages() }}
+          <span class="ml-1 text-gray-400">({{ totalElements() }} produits)</span>
+        </span>
+        <button mat-stroked-button [disabled]="page >= totalPages() - 1" (click)="nextPage()">
+          Suivant
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+      </div>
+    }
+  }
+</div>

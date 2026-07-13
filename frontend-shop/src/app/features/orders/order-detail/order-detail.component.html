@@ -1,0 +1,75 @@
+@if (loading()) {
+  <div class="flex justify-center py-32"><mat-spinner [diameter]="48" /></div>
+} @else if (order()) {
+  <div class="container mx-auto px-4 py-8 max-w-2xl">
+    <a routerLink="/orders" class="text-sm text-gray-500 hover:text-gray-900 inline-flex items-center gap-1 mb-6">
+      <mat-icon class="text-base">chevron_left</mat-icon> Mes commandes
+    </a>
+
+    <div class="flex items-start justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">
+          Commande #{{ order()!.id.slice(-8).toUpperCase() }}
+        </h1>
+        <p class="text-sm text-gray-500 mt-1">{{ order()!.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+      </div>
+      <div class="flex flex-col items-end gap-2">
+        <span class="inline-block text-sm font-medium px-3 py-1 rounded-full" [class]="statusClass(order()!.status)">
+          {{ statusLabels[order()!.status] ?? order()!.status }}
+        </span>
+        <button mat-stroked-button (click)="downloadInvoice()" [disabled]="downloading()">
+          <mat-icon>download</mat-icon>
+          Facture PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Articles -->
+    <div class="rounded-xl border border-gray-200 bg-white overflow-hidden mb-6">
+      <div class="px-4 py-3 border-b border-gray-200 font-semibold text-gray-800">Articles</div>
+      @for (item of order()!.items; track item.productId) {
+        <div class="flex items-center gap-3 p-4 border-b border-gray-100 last:border-0">
+          <img [src]="item.productImage" [alt]="item.productName"
+               class="w-12 h-12 object-contain rounded-lg bg-gray-50" />
+          <div class="flex-1">
+            <p class="font-medium text-gray-900 text-sm">{{ item.productName }}</p>
+            <p class="text-xs text-gray-500">{{ item.unitPrice | currency:'EUR':'symbol':'1.2-2':'fr' }} × {{ item.quantity }}</p>
+          </div>
+          <span class="font-semibold text-gray-900">{{ item.subtotal | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+        </div>
+      }
+      <div class="px-4 py-3 border-t border-gray-200 flex justify-between font-bold text-lg">
+        <span>Total</span>
+        <span>{{ order()!.total | currency:'EUR':'symbol':'1.2-2':'fr' }}</span>
+      </div>
+    </div>
+
+    <!-- Livraison -->
+    <div class="rounded-xl border border-gray-200 bg-white p-4 mb-6">
+      <h3 class="font-semibold text-gray-800 mb-2">Livraison</h3>
+      <p class="text-sm text-gray-700">{{ order()!.shippingName }}</p>
+      <p class="text-sm text-gray-500">{{ order()!.shippingAddress }}</p>
+      <p class="text-sm text-gray-500">{{ order()!.shippingEmail }}</p>
+    </div>
+
+    <!-- Paiement -->
+    @if (payment()) {
+      <div class="rounded-xl border border-gray-200 bg-white p-4">
+        <h3 class="font-semibold text-gray-800 mb-2">Paiement</h3>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">Statut</span>
+          <span class="font-medium" [class.text-green-600]="payment()!.status === 'COMPLETED'"
+                [class.text-red-600]="payment()!.status === 'FAILED'">
+            {{ payment()!.status }}
+          </span>
+        </div>
+        @if (payment()!.transactionRef) {
+          <div class="flex justify-between text-sm mt-1">
+            <span class="text-gray-500">Référence</span>
+            <span class="font-mono text-xs">{{ payment()!.transactionRef }}</span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}
