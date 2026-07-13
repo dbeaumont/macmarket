@@ -15,6 +15,18 @@
       <p class="text-lg">Aucun produit trouvé</p>
     </div>
   } @else {
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-sm text-gray-500">{{ totalElements() }} produits</span>
+      <mat-form-field appearance="outline" class="w-32" subscriptSizing="dynamic">
+        <mat-label>Par page</mat-label>
+        <mat-select [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
+          @for (size of pageSizeOptions; track size) {
+            <mat-option [value]="size">{{ size }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
     <app-product-grid [products]="products()" />
 
     <!-- Pagination -->
@@ -24,10 +36,7 @@
           <mat-icon>chevron_left</mat-icon>
           Précédent
         </button>
-        <span class="text-sm text-gray-500">
-          Page {{ page + 1 }} sur {{ totalPages() }}
-          <span class="ml-1 text-gray-400">({{ totalElements() }} produits)</span>
-        </span>
+        <span class="text-sm text-gray-500">Page {{ page + 1 }} sur {{ totalPages() }}</span>
         <button mat-stroked-button [disabled]="page >= totalPages() - 1" (click)="nextPage()">
           Suivant
           <mat-icon>chevron_right</mat-icon>
