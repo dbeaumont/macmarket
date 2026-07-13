@@ -1,4 +1,5 @@
 .PHONY: help init up down restart logs status urls dev dev-down \
+        first-time npm-lockfiles \
         backend-run shop-run admin-run \
         build build-backend build-shop build-admin \
         test test-modularity test-frontend \
@@ -32,7 +33,6 @@ init: ## Initialiser le projet (creer .env, dossiers data)
 
 up: init ## Lancer toute la stack (7 services)
 	$(COMPOSE) up -d
-	@$(MAKE) --no-print-directory ollama-ensure
 	@echo ""
 	@echo "✅ Stack demarree"
 	@echo "   Boutique :   http://localhost:$(or $(FRONTEND_SHOP_PORT),3000)"
@@ -46,6 +46,13 @@ down: ## Arreter toute la stack
 	$(COMPOSE) down
 
 restart: down up ## Redemarrer toute la stack
+
+first-time: init ## Premier lancement : regeneration des lockfiles npm + stack + modele LLM
+	@$(MAKE) --no-print-directory npm-lockfiles
+	@$(MAKE) --no-print-directory up
+	@$(MAKE) --no-print-directory ollama-ensure
+	@echo ""
+	@echo "✅ Environnement pret pour la premiere utilisation"
 
 logs: ## Voir les logs de tous les services
 	$(COMPOSE) logs -f
@@ -151,6 +158,13 @@ test-modularity: ## Lancer uniquement les tests de modularite
 test-frontend: ## Lancer les tests des deux frontends (Vitest)
 	cd frontend-shop && npm test
 	cd frontend-admin && npm test
+
+npm-lockfiles: ## Regenerer les package-lock.json (le champ "resolved" depend du registre npm du poste)
+	@echo "⏳ Regeneration de frontend-shop/package-lock.json..."
+	cd frontend-shop && rm -rf node_modules package-lock.json && npm install
+	@echo "⏳ Regeneration de frontend-admin/package-lock.json..."
+	cd frontend-admin && rm -rf node_modules package-lock.json && npm install
+	@echo "✅ package-lock.json regeneres"
 
 # === Base de donnees ===
 

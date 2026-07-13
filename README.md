@@ -11,11 +11,17 @@ Marketplace e-commerce pour Mac, construite avec Spring Boot + Spring Modulith, 
 
 ## Lancement rapide
 
+Premier lancement sur un poste (pull du modele `OLLAMA_MODEL` et generation des `package-lock.json` npm, quelques minutes) :
+
+```bash
+make first-time
+```
+
+Lancements suivants :
+
 ```bash
 make up
 ```
-
-Premier lancement : quelques minutes (pull du modele `OLLAMA_MODEL`, `qwen2.5:3b` par defaut).
 
 | Service | URL |
 |---------|-----|
@@ -55,8 +61,11 @@ make logs           # logs en temps reel
 make test           # tests backend
 make db-shell       # psql dans le container
 make ollama-status  # verifier le modele LLM
+make npm-lockfiles  # regenerer les package-lock.json (registre npm du poste)
 make clean          # tout nettoyer
 ```
+
+> `package-lock.json` n'est pas versionne : le champ `resolved` embarque l'URL du registre npm utilise a la generation (Nexus local vs Artifactory entreprise, voir `.env`). Chaque poste le regenere via `make first-time` ou `make npm-lockfiles`.
 
 ## Architecture
 

@@ -11,6 +11,11 @@
 npm-debug.log
 yarn-error.log
 
+# Lockfile : le champ "resolved" embarque l'URL du registre npm utilise a la
+# generation (Nexus local vs Artifactory entreprise), donc non partageable
+# entre postes. Chaque poste regenere le sien avec `npm install`.
+package-lock.json
+
 # IDEs and editors
 .idea/
 .project
