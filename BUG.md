@@ -1,0 +1,1 @@
+dans le site admin, sur la page inventaire, le clic sur le bouton crayon de la colonne actions fonctionne (affichage du détail du produit). Mais dès que je selectionne une promo, les boutons crayons ne fonctionnent plus. Lorsque je reload la page, j'arrive directement sur la page du détail du produit pour lequel j'avais essayé de cliquer sur le crayon

@@ -49,7 +49,7 @@ export default function App() {
   return (
     <AuthProvider {...oidcConfig}>
       <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
+        <BrowserRouter useTransitions={false}>
           <TokenSync />
           <Routes>
             <Route path="/" element={<HomePage />} />
