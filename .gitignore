@@ -9,6 +9,9 @@ target/
 *.log
 .mvn/wrapper/maven-wrapper.jar
 
+# === IDE — genere par le support Spring Modulith ===
+/build/
+
 # === Node / Frontend ===
 node_modules/
 dist/
