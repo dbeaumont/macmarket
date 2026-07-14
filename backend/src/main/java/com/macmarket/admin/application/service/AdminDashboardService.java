@@ -6,11 +6,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.macmarket.admin.infrastructure.persistence.repository.AdminOrderReadRepository;
-import com.macmarket.admin.infrastructure.persistence.repository.AdminProductReadRepository;
+import com.macmarket.admin.domain.repository.AdminOrderReadRepository;
+import com.macmarket.admin.domain.repository.AdminProductReadRepository;
 import com.macmarket.admin.presentation.dto.*;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,36 +40,28 @@ public class AdminDashboardService {
         long lowStockCount = productReadRepository.countLowStock(LOW_STOCK_THRESHOLD);
 
         Map<String, Long> ordersByStatus = new LinkedHashMap<>();
-        for (Object[] row : orderReadRepository.countByStatus()) {
-            ordersByStatus.put((String) row[0], (Long) row[1]);
+        for (var statusCount : orderReadRepository.countByStatus()) {
+            ordersByStatus.put(statusCount.status(), statusCount.count());
         }
 
         var revenueChart = orderReadRepository.revenueByDay(since30d).stream()
-            .map(row -> new RevenueChartPoint(row[0].toString(), toBigDecimal(row[1])))
+            .map(daily -> new RevenueChartPoint(daily.day(), daily.revenue()))
             .toList();
 
-        var recentOrders = orderReadRepository.findRecentOrders(PageRequest.of(0, RECENT_ORDERS_LIMIT)).stream()
+        var recentOrders = orderReadRepository.findRecentOrders(RECENT_ORDERS_LIMIT).stream()
             .map(o -> new RecentOrderDto(
-                o.getId(), o.getUserId(), o.getStatus(), o.getTotal(),
-                o.getItems().size(), o.getCreatedAt()))
+                o.id(), o.userId(), o.status(), o.total(), o.itemCount(), o.createdAt()))
             .toList();
 
         var lowStockProducts = productReadRepository.findLowStockProducts(LOW_STOCK_THRESHOLD).stream()
             .map(p -> new LowStockProductDto(
-                p.getId(), p.getName(), p.getCategory(), p.getPrice(),
-                p.getStockQuantity(), p.getReservedQuantity(),
-                p.getStockQuantity() - p.getReservedQuantity()))
+                p.id(), p.name(), p.category(), p.price(),
+                p.stockQuantity(), p.reservedQuantity(), p.availableQuantity()))
             .toList();
 
         return new DashboardResponse(
             totalOrders, totalRevenue, totalCustomers, activeProducts, lowStockCount,
             ordersByStatus, revenueChart, recentOrders, lowStockProducts
         );
-    }
-
-    private BigDecimal toBigDecimal(Object value) {
-        if (value instanceof BigDecimal bd) return bd;
-        if (value instanceof Number n) return BigDecimal.valueOf(n.doubleValue());
-        return BigDecimal.ZERO;
     }
 }

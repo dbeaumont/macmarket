@@ -38,23 +38,24 @@ public class CartApplicationService {
     }
 
     public Cart addItem(String userId, UUID productId, int quantity) {
-        var product = catalogService.findById(ProductId.of(productId));
+        var typedProductId = ProductId.of(productId);
+        var product = catalogService.findById(typedProductId);
         var cart = getOrCreate(userId);
-        cart.addItem(productId, product.getName(), product.getImageUrl(), product.getDiscountedPrice().amount(), quantity);
+        cart.addItem(typedProductId, product.getName(), product.getImageUrl(), product.getDiscountedPrice().amount(), quantity);
         cartRepository.save(cart);
         return cart;
     }
 
     public Cart updateItemQuantity(String userId, UUID productId, int quantity) {
         var cart = getOrCreate(userId);
-        cart.updateItemQuantity(productId, quantity);
+        cart.updateItemQuantity(ProductId.of(productId), quantity);
         cartRepository.save(cart);
         return cart;
     }
 
     public Cart removeItem(String userId, UUID productId) {
         var cart = getOrCreate(userId);
-        cart.removeItem(productId);
+        cart.removeItem(ProductId.of(productId));
         cartRepository.save(cart);
         return cart;
     }

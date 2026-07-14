@@ -33,6 +33,19 @@ public class OrderQueryService {
             .orElseThrow(() -> new OrderNotFoundException(id));
     }
 
+    /**
+     * Recupere une commande et verifie qu'elle appartient bien a l'utilisateur demandeur.
+     * Si la commande existe mais appartient a un autre utilisateur, on leve la meme
+     * exception que si elle n'existait pas, afin de ne pas divulguer son existence (IDOR).
+     */
+    public Order findByIdForUser(UUID id, UserId userId) {
+        var order = findById(id);
+        if (!order.getUserId().equals(userId)) {
+            throw new OrderNotFoundException(order.getId());
+        }
+        return order;
+    }
+
     public List<Order> findByUserId(UserId userId) {
         return orderRepository.findByUserId(userId);
     }

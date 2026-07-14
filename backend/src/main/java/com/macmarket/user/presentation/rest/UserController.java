@@ -6,8 +6,10 @@ import java.util.Map;
 import com.macmarket.UserId;
 import com.macmarket.user.application.service.ShippingProfileApplicationService;
 import com.macmarket.user.presentation.dto.ShippingProfileResponse;
+import com.macmarket.user.presentation.dto.UserProfileResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -33,18 +35,18 @@ class UserController {
     @Operation(summary = "Profil de l'utilisateur connecté")
     @ApiResponse(responseCode = "200", description = "Données du profil")
     @GetMapping("/api/v1/users/me")
-    Map<String, Object> me(@AuthenticationPrincipal Jwt jwt) {
+    UserProfileResponse me(@Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt) {
         @SuppressWarnings("unchecked")
         var realmAccess = (Map<String, Object>) jwt.getClaims().getOrDefault("realm_access", Map.of());
         @SuppressWarnings("unchecked")
         var roles = (List<String>) realmAccess.getOrDefault("roles", List.of());
 
-        return Map.of(
-            "sub", jwt.getSubject(),
-            "email", jwt.getClaimAsString("email") != null ? jwt.getClaimAsString("email") : "",
-            "name", jwt.getClaimAsString("name") != null ? jwt.getClaimAsString("name") : "",
-            "preferredUsername", jwt.getClaimAsString("preferred_username") != null ? jwt.getClaimAsString("preferred_username") : "",
-            "roles", roles
+        return new UserProfileResponse(
+            jwt.getSubject(),
+            jwt.getClaimAsString("email") != null ? jwt.getClaimAsString("email") : "",
+            jwt.getClaimAsString("name") != null ? jwt.getClaimAsString("name") : "",
+            jwt.getClaimAsString("preferred_username") != null ? jwt.getClaimAsString("preferred_username") : "",
+            roles
         );
     }
 
@@ -52,7 +54,7 @@ class UserController {
     @ApiResponse(responseCode = "200", description = "Profil de livraison trouvé")
     @ApiResponse(responseCode = "204", description = "Aucun profil de livraison enregistré", content = @Content)
     @GetMapping("/api/v1/users/me/shipping-profile")
-    ResponseEntity<ShippingProfileResponse> myShippingProfile(@AuthenticationPrincipal Jwt jwt) {
+    ResponseEntity<ShippingProfileResponse> myShippingProfile(@Parameter(hidden = true) @AuthenticationPrincipal Jwt jwt) {
         return shippingProfileService.findByUserId(UserId.of(jwt.getSubject()))
             .map(profile -> ResponseEntity.ok(new ShippingProfileResponse(profile.getName(), profile.getAddress(), profile.getEmail().value())))
             .orElseGet(() -> ResponseEntity.noContent().build());

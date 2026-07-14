@@ -2,23 +2,29 @@ package com.macmarket.cart.domain.model;
 
 import java.math.BigDecimal;
 import java.util.Objects;
-import java.util.UUID;
+
+import com.macmarket.catalog.domain.model.ProductId;
 
 public class CartItem {
 
-    private final UUID productId;
+    private final ProductId productId;
     private String productName;
     private String productImage;
     private BigDecimal unitPrice;
     private int quantity;
 
-    public CartItem(UUID productId, String productName, String productImage, BigDecimal unitPrice, int quantity) {
+    private CartItem(ProductId productId, String productName, String productImage, BigDecimal unitPrice, int quantity) {
         Objects.requireNonNull(productId);
         this.productId = productId;
         this.productName = productName;
         this.productImage = productImage;
         this.unitPrice = unitPrice;
         this.quantity = quantity;
+    }
+
+    public static CartItem create(ProductId productId, String productName, String productImage,
+                                   BigDecimal unitPrice, int quantity) {
+        return new CartItem(productId, productName, productImage, unitPrice, quantity);
     }
 
     void increaseQuantity(int amount) { this.quantity += amount; }
@@ -31,7 +37,7 @@ public class CartItem {
         this.unitPrice = price;
     }
 
-    public UUID getProductId() { return productId; }
+    public ProductId getProductId() { return productId; }
     public String getProductName() { return productName; }
     public String getProductImage() { return productImage; }
     public BigDecimal getUnitPrice() { return unitPrice; }

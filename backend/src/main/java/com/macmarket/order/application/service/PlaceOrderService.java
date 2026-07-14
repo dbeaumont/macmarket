@@ -34,7 +34,7 @@ public class PlaceOrderService {
         }
 
         List<OrderItem> items = cart.getItems().stream()
-            .map(i -> new OrderItem(ProductReference.of(i.getProductId()), i.getProductName(), i.getProductImage(),
+            .map(i -> new OrderItem(ProductReference.of(i.getProductId().value()), i.getProductName(), i.getProductImage(),
                 i.getUnitPrice(), i.getQuantity(), i.subtotal()))
             .toList();
 

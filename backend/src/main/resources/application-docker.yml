@@ -16,10 +16,7 @@ spring:
     host: mailpit
     port: 1025
 
-# A mettre à false en environnement de Production
-#springdoc:
-#  swagger-ui:
-#    enabled: false
-#  api-docs:
-#    enabled: false
+# Profil "docker" = stack complete locale (docker-compose), pas un environnement de production.
+# Swagger reste actif ici pour les tests locaux. Le profil "prod" (application-prod.yml)
+# desactive springdoc et doit etre ajoute a SPRING_PROFILES_ACTIVE lors d'un deploiement reel.
 

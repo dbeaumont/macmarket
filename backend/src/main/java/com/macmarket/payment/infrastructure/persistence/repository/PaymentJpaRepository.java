@@ -5,8 +5,7 @@ import java.util.Optional;
 import com.macmarket.payment.domain.model.OrderReference;
 import com.macmarket.payment.domain.model.Payment;
 import com.macmarket.payment.domain.model.PaymentId;
-import com.macmarket.payment.domain.model.PaymentStatus;
-import com.macmarket.payment.infrastructure.persistence.entity.PaymentJpaEntity;
+import com.macmarket.payment.infrastructure.persistence.mapper.PaymentPersistenceMapper;
 
 import org.springframework.stereotype.Component;
 
@@ -14,9 +13,11 @@ import org.springframework.stereotype.Component;
 class PaymentJpaRepository implements com.macmarket.payment.domain.repository.PaymentRepository {
 
     private final PaymentSpringDataRepository springData;
+    private final PaymentPersistenceMapper mapper;
 
-    PaymentJpaRepository(PaymentSpringDataRepository springData) {
+    PaymentJpaRepository(PaymentSpringDataRepository springData, PaymentPersistenceMapper mapper) {
         this.springData = springData;
+        this.mapper = mapper;
     }
 
     @Override
@@ -30,11 +31,7 @@ class PaymentJpaRepository implements com.macmarket.payment.domain.repository.Pa
             e.setCompletedAt(p.getCompletedAt());
             springData.save(e);
         } else {
-            var e = new PaymentJpaEntity();
-            e.setId(p.getId().value());
-            e.setOrderId(p.getOrderId().value());
-            e.setAmount(p.getAmount());
-            e.setStatus(p.getStatus().name());
+            var e = mapper.toJpa(p);
             e.markAsNew();
             springData.save(e);
         }
@@ -42,17 +39,11 @@ class PaymentJpaRepository implements com.macmarket.payment.domain.repository.Pa
 
     @Override
     public Optional<Payment> findById(PaymentId id) {
-        return springData.findById(id.value()).map(this::toDomain);
+        return springData.findById(id.value()).map(mapper::toDomain);
     }
 
     @Override
     public Optional<Payment> findByOrderId(OrderReference orderId) {
-        return springData.findByOrderId(orderId.value()).map(this::toDomain);
-    }
-
-    private Payment toDomain(PaymentJpaEntity e) {
-        return Payment.reconstitute(PaymentId.of(e.getId()), OrderReference.of(e.getOrderId()), e.getAmount(),
-            PaymentStatus.valueOf(e.getStatus()), e.getTransactionRef(), e.getFailureReason(),
-            e.getCreatedAt(), e.getCompletedAt());
+        return springData.findByOrderId(orderId.value()).map(mapper::toDomain);
     }
 }

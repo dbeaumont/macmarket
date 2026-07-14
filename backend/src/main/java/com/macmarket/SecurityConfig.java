@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/cart/**").permitAll()
                 .requestMatchers("/api/v1/**").authenticated()
                 .requestMatchers("/actuator/health").permitAll()
-                .anyRequest().permitAll()
+                .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
                 .bearerTokenResolver(this::resolveBearerToken)

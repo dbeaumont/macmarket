@@ -35,6 +35,7 @@ class AdminStatsController {
             @Parameter(name = "type", description = "Type de statistique", in = ParameterIn.PATH,
                     schema = @Schema(type = "string", allowableValues = {"revenue", "products", "customers", "orders"}))
             @PathVariable String type,
+            @Parameter(description = "Période d'analyse (ex. 30d, 6m)", required = false)
             @RequestParam(defaultValue = "30d") String period) {
         return switch (type) {
             case "revenue" -> ResponseEntity.ok(statsService.getRevenueStats(period));

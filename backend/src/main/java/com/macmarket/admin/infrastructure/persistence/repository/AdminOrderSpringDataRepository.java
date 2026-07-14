@@ -13,7 +13,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface AdminOrderReadRepository extends JpaRepository<AdminOrderJpaEntity, UUID> {
+interface AdminOrderSpringDataRepository extends JpaRepository<AdminOrderJpaEntity, UUID> {
 
     Page<AdminOrderJpaEntity> findByStatusOrderByCreatedAtDesc(String status, Pageable pageable);
 

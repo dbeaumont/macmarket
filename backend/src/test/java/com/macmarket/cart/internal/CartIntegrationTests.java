@@ -48,7 +48,7 @@ class CartIntegrationTests {
         var cart = cartService.addItem(userId, testProduct.getId().value(), 1);
 
         assertThat(cart.getItems()).hasSize(1);
-        assertThat(cart.getItems().getFirst().getProductId()).isEqualTo(testProduct.getId().value());
+        assertThat(cart.getItems().getFirst().getProductId()).isEqualTo(testProduct.getId());
         assertThat(cart.getItems().getFirst().getProductName()).isEqualTo(testProduct.getName());
         assertThat(cart.getItems().getFirst().getUnitPrice()).isEqualByComparingTo(testProduct.getPrice().amount());
         assertThat(cart.getItems().getFirst().getQuantity()).isEqualTo(1);
@@ -123,7 +123,7 @@ class CartIntegrationTests {
         var cart = cartService.addItem(guestKey, testProduct.getId().value(), 1);
 
         assertThat(cart.getItems()).hasSize(1);
-        assertThat(cart.getItems().getFirst().getProductId()).isEqualTo(testProduct.getId().value());
+        assertThat(cart.getItems().getFirst().getProductId()).isEqualTo(testProduct.getId());
     }
 
     @Test
@@ -140,7 +140,7 @@ class CartIntegrationTests {
 
         assertThat(merged.getItems()).hasSize(2);
         var mergedTestProductItem = merged.getItems().stream()
-            .filter(i -> i.getProductId().equals(testProduct.getId().value()))
+            .filter(i -> i.getProductId().equals(testProduct.getId()))
             .findFirst().orElseThrow();
         assertThat(mergedTestProductItem.getQuantity()).isEqualTo(3);
 

@@ -7,8 +7,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import com.macmarket.admin.infrastructure.persistence.repository.AdminOrderReadRepository;
-import com.macmarket.admin.infrastructure.persistence.repository.AdminProductReadRepository;
+import com.macmarket.admin.domain.repository.AdminOrderReadRepository;
+import com.macmarket.admin.domain.repository.AdminProductReadRepository;
 import com.macmarket.admin.presentation.dto.*;
 
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ public class AdminStatsService {
             : BigDecimal.ZERO;
 
         var chart = orderReadRepository.revenueByDay(since).stream()
-            .map(row -> new RevenueChartPoint(row[0].toString(), toBigDecimal(row[1])))
+            .map(daily -> new RevenueChartPoint(daily.day(), daily.revenue()))
             .toList();
 
         return new RevenueStatsResponse(totalRevenue, averageOrderValue, orderCount, chart);
@@ -51,9 +51,8 @@ public class AdminStatsService {
 
         var lowStockProducts = productReadRepository.findLowStockProducts(LOW_STOCK_THRESHOLD).stream()
             .map(p -> new LowStockProductDto(
-                p.getId(), p.getName(), p.getCategory(), p.getPrice(),
-                p.getStockQuantity(), p.getReservedQuantity(),
-                p.getStockQuantity() - p.getReservedQuantity()))
+                p.id(), p.name(), p.category(), p.price(),
+                p.stockQuantity(), p.reservedQuantity(), p.availableQuantity()))
             .toList();
 
         return new ProductStatsResponse(totalProducts, activeProducts, lowStockCount, lowStockProducts);
@@ -77,12 +76,12 @@ public class AdminStatsService {
         BigDecimal totalRevenue = orderReadRepository.sumRevenueSince(since);
 
         Map<String, Long> byStatus = new LinkedHashMap<>();
-        for (Object[] row : orderReadRepository.countByStatusSince(since)) {
-            byStatus.put((String) row[0], (Long) row[1]);
+        for (var statusCount : orderReadRepository.countByStatusSince(since)) {
+            byStatus.put(statusCount.status(), statusCount.count());
         }
 
         var chart = orderReadRepository.ordersByDay(since).stream()
-            .map(row -> new OrderChartPoint(row[0].toString(), ((Number) row[1]).longValue()))
+            .map(daily -> new OrderChartPoint(daily.day(), daily.count()))
             .toList();
 
         return new OrderStatsResponse(totalOrders, totalRevenue, byStatus, chart);
@@ -102,11 +101,5 @@ public class AdminStatsService {
             return Instant.now().minus((long) months * 30, ChronoUnit.DAYS);
         }
         return Instant.now().minus(30, ChronoUnit.DAYS);
-    }
-
-    private BigDecimal toBigDecimal(Object value) {
-        if (value instanceof BigDecimal bd) return bd;
-        if (value instanceof Number n) return BigDecimal.valueOf(n.doubleValue());
-        return BigDecimal.ZERO;
     }
 }

@@ -10,10 +10,10 @@ import com.macmarket.catalog.application.command.UpdateProductCommand;
 import com.macmarket.catalog.application.service.CatalogQueryService;
 import com.macmarket.catalog.application.service.CreateProductService;
 import com.macmarket.catalog.application.service.UpdateProductService;
-import com.macmarket.catalog.domain.model.ProductId;
 import com.macmarket.catalog.presentation.dto.*;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,13 +48,13 @@ class CatalogController {
     @ApiResponse(responseCode = "200", description = "Liste paginée de produits")
     @GetMapping("/api/v1/products")
     ResponseEntity<Map<String, Object>> listProducts(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "12") int size,
-        @RequestParam(defaultValue = "createdAt,desc") String sort,
-        @RequestParam(required = false) String category,
-        @RequestParam(required = false) String search,
-        @RequestParam(required = false) BigDecimal minPrice,
-        @RequestParam(required = false) BigDecimal maxPrice
+        @Parameter(description = "Numéro de page (0-indexé)") @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "Taille de page") @RequestParam(defaultValue = "12") int size,
+        @Parameter(description = "Tri au format champ,direction") @RequestParam(defaultValue = "createdAt,desc") String sort,
+        @Parameter(description = "Filtre par catégorie", required = false) @RequestParam(required = false) String category,
+        @Parameter(description = "Recherche textuelle sur le nom/description", required = false) @RequestParam(required = false) String search,
+        @Parameter(description = "Prix minimum", required = false) @RequestParam(required = false) BigDecimal minPrice,
+        @Parameter(description = "Prix maximum", required = false) @RequestParam(required = false) BigDecimal maxPrice
     ) {
         var result = queryService.findAll(true, category, minPrice, maxPrice, search, page, size, sort);
         var content = result.content().stream().map(responseMapper::toResponse).toList();
@@ -71,7 +71,9 @@ class CatalogController {
     @ApiResponse(responseCode = "200", description = "Produit trouvé")
     @ApiResponse(responseCode = "404", description = "Produit introuvable")
     @GetMapping("/api/v1/products/{slug}")
-    ResponseEntity<ProductResponse> getBySlug(@PathVariable String slug) {
+    ResponseEntity<ProductResponse> getBySlug(
+        @Parameter(description = "Slug du produit", required = true) @PathVariable String slug
+    ) {
         var product = queryService.findBySlug(slug);
         return ResponseEntity.ok(responseMapper.toResponse(product));
     }
@@ -92,8 +94,10 @@ class CatalogController {
     @ApiResponse(responseCode = "404", description = "Produit introuvable")
     @GetMapping("/api/v1/admin/products/{id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    ResponseEntity<ProductResponse> getProductById(@PathVariable UUID id) {
-        var product = queryService.findById(ProductId.of(id));
+    ResponseEntity<ProductResponse> getProductById(
+        @Parameter(description = "Identifiant du produit", required = true) @PathVariable UUID id
+    ) {
+        var product = queryService.findById(id);
         return ResponseEntity.ok(responseMapper.toResponse(product));
     }
 
@@ -102,7 +106,9 @@ class CatalogController {
     @ApiResponse(responseCode = "403", description = "Accès refusé")
     @PostMapping("/api/v1/admin/products")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody CreateProductRequest request) {
+    ResponseEntity<ProductResponse> createProduct(
+        @Parameter(description = "Données du produit à créer", required = true) @Valid @RequestBody CreateProductRequest request
+    ) {
         var command = new CreateProductCommand(
             request.name(), request.slug(), request.description(), request.shortDesc(),
             request.price(), request.category(), request.imageUrl(),
@@ -117,7 +123,10 @@ class CatalogController {
     @ApiResponse(responseCode = "403", description = "Accès refusé")
     @PutMapping("/api/v1/admin/products/{id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    ResponseEntity<ProductResponse> updateProduct(@PathVariable UUID id, @Valid @RequestBody UpdateProductRequest request) {
+    ResponseEntity<ProductResponse> updateProduct(
+        @Parameter(description = "Identifiant du produit à modifier", required = true) @PathVariable UUID id,
+        @Parameter(description = "Nouvelles données du produit", required = true) @Valid @RequestBody UpdateProductRequest request
+    ) {
         var command = new UpdateProductCommand(
             id, request.name(), request.description(), request.shortDesc(),
             request.price(), request.category(), request.imageUrl(),
@@ -134,7 +143,10 @@ class CatalogController {
     @ApiResponse(responseCode = "422", description = "Taux de promotion invalide")
     @PutMapping("/api/v1/admin/products/{id}/promotion")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    ResponseEntity<ProductResponse> updatePromotion(@PathVariable UUID id, @Valid @RequestBody UpdatePromotionRequest request) {
+    ResponseEntity<ProductResponse> updatePromotion(
+        @Parameter(description = "Identifiant du produit", required = true) @PathVariable UUID id,
+        @Parameter(description = "Nouveau taux de promotion", required = true) @Valid @RequestBody UpdatePromotionRequest request
+    ) {
         var product = updateProductService.updatePromotion(id, request.promotionPercentage());
         return ResponseEntity.ok(responseMapper.toResponse(product));
     }
@@ -144,7 +156,9 @@ class CatalogController {
     @ApiResponse(responseCode = "403", description = "Accès refusé")
     @DeleteMapping("/api/v1/admin/products/{id}")
     @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
-    ResponseEntity<Void> deleteProduct(@PathVariable UUID id) {
+    ResponseEntity<Void> deleteProduct(
+        @Parameter(description = "Identifiant du produit à supprimer", required = true) @PathVariable UUID id
+    ) {
         updateProductService.deactivate(id);
         return ResponseEntity.noContent().build();
     }

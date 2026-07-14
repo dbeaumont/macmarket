@@ -7,6 +7,7 @@ import com.macmarket.assistant.application.service.ChatService;
 import com.macmarket.assistant.presentation.dto.ChatRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,8 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -51,8 +50,10 @@ public class AssistantController {
     @ApiResponse(responseCode = "200", description = "Flux d'événements SSE",
             content = @Content(mediaType = "text/event-stream", schema = @Schema(type = "string")))
     @PostMapping(value = "/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter chat(@Valid @RequestBody ChatRequest request,
-                           @AuthenticationPrincipal Jwt jwt) {
+    public SseEmitter chat(
+        @Parameter(description = "Message utilisateur et identifiant de conversation optionnel", required = true)
+        @Valid @RequestBody ChatRequest request
+    ) {
         var emitter = new SseEmitter(SSE_TIMEOUT);
         var completed = new AtomicBoolean(false);
 
@@ -65,6 +66,7 @@ public class AssistantController {
                     try {
                         emitter.send(chatService.toSseEvent(event));
                     } catch (Exception ex) {
+                        log.error("Erreur lors de l'envoi d'un évènement SSE au client", ex);
                         completed.set(true);
                     }
                 },
@@ -76,6 +78,7 @@ public class AssistantController {
                             .data(Map.of("content", "L'assistant est temporairement indisponible")));
                         emitter.complete();
                     } catch (Exception ex) {
+                        log.error("Erreur lors de l'envoi de l'évènement d'erreur SSE au client", ex);
                         completed.set(true);
                     }
                 },
@@ -104,7 +107,9 @@ public class AssistantController {
     @Operation(summary = "Supprimer une conversation")
     @ApiResponse(responseCode = "204", description = "Conversation supprimée", content = @Content)
     @DeleteMapping("/conversations/{id}")
-    public ResponseEntity<Void> deleteConversation(@PathVariable String id) {
+    public ResponseEntity<Void> deleteConversation(
+        @Parameter(description = "Identifiant de la conversation à supprimer", required = true) @PathVariable String id
+    ) {
         chatService.clearConversation(id);
         return ResponseEntity.noContent().build();
     }

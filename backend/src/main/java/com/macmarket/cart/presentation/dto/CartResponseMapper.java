@@ -10,7 +10,7 @@ public class CartResponseMapper {
     public CartResponse toResponse(Cart cart) {
         var items = cart.getItems().stream()
             .map(i -> new CartItemResponse(
-                i.getProductId(), i.getProductName(), i.getProductImage(),
+                i.getProductId().value(), i.getProductName(), i.getProductImage(),
                 i.getUnitPrice(), i.getQuantity(), i.subtotal()
             ))
             .toList();

@@ -8,6 +8,7 @@ import com.macmarket.admin.application.service.AdminOrderService;
 import com.macmarket.admin.presentation.dto.AdminOrderResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -34,8 +35,8 @@ class AdminCustomerController {
     @ApiResponse(responseCode = "200", description = "Liste paginée des clients")
     @GetMapping
     ResponseEntity<Map<String, Object>> listCustomers(
-        @RequestParam(defaultValue = "0") int page,
-        @RequestParam(defaultValue = "20") int size
+        @Parameter(description = "Numéro de page (0-indexé)") @RequestParam(defaultValue = "0") int page,
+        @Parameter(description = "Taille de page") @RequestParam(defaultValue = "20") int size
     ) {
         return ResponseEntity.ok(customerService.findCustomers(page, size));
     }
@@ -43,7 +44,9 @@ class AdminCustomerController {
     @Operation(summary = "Commandes d'un client")
     @ApiResponse(responseCode = "200", description = "Liste des commandes du client")
     @GetMapping("/{userId}/orders")
-    ResponseEntity<List<AdminOrderResponse>> getCustomerOrders(@PathVariable String userId) {
+    ResponseEntity<List<AdminOrderResponse>> getCustomerOrders(
+        @Parameter(description = "Identifiant de l'utilisateur client", required = true) @PathVariable String userId
+    ) {
         return ResponseEntity.ok(orderService.findOrdersByUserId(userId));
     }
 }

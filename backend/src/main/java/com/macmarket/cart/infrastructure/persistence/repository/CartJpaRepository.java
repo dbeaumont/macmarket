@@ -40,7 +40,7 @@ class CartJpaRepository implements CartRepository {
             for (var domainItem : cart.getItems()) {
                 var itemEntity = new CartItemJpaEntity();
                 itemEntity.setCart(entity);
-                itemEntity.setProductId(domainItem.getProductId());
+                itemEntity.setProductId(domainItem.getProductId().value());
                 itemEntity.setProductName(domainItem.getProductName());
                 itemEntity.setProductImage(domainItem.getProductImage());
                 itemEntity.setUnitPrice(domainItem.getUnitPrice());

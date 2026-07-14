@@ -1,14 +1,11 @@
 package com.macmarket.admin.application.service;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 
-import com.macmarket.admin.infrastructure.persistence.repository.AdminOrderReadRepository;
+import com.macmarket.admin.domain.model.PageRequestSpec;
+import com.macmarket.admin.domain.repository.AdminOrderReadRepository;
 import com.macmarket.admin.presentation.dto.CustomerSummaryResponse;
 
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,31 +20,16 @@ public class AdminCustomerService {
     }
 
     public Map<String, Object> findCustomers(int page, int size) {
-        List<Object[]> rows = orderReadRepository.customerAggregation(PageRequest.of(page, size));
-        long totalCustomers = orderReadRepository.countDistinctCustomers();
-
-        List<CustomerSummaryResponse> content = rows.stream()
-            .map(row -> new CustomerSummaryResponse(
-                (String) row[0],
-                (Long) row[1],
-                toBigDecimal(row[2]),
-                (Instant) row[3]))
-            .toList();
-
-        int totalPages = size > 0 ? (int) Math.ceil((double) totalCustomers / size) : 1;
+        var result = orderReadRepository.customerAggregation(PageRequestSpec.of(page, size))
+            .map(summary -> new CustomerSummaryResponse(
+                summary.userId(), summary.orderCount(), summary.totalSpent(), summary.lastOrderDate()));
 
         return Map.of(
-            "content", content,
-            "totalElements", totalCustomers,
-            "totalPages", totalPages,
-            "size", size,
-            "number", page
+            "content", result.content(),
+            "totalElements", result.totalElements(),
+            "totalPages", result.totalPages(),
+            "size", result.size(),
+            "number", result.number()
         );
-    }
-
-    private BigDecimal toBigDecimal(Object value) {
-        if (value instanceof BigDecimal bd) return bd;
-        if (value instanceof Number n) return BigDecimal.valueOf(n.doubleValue());
-        return BigDecimal.ZERO;
     }
 }

@@ -7,6 +7,7 @@ import com.macmarket.cart.domain.model.CartId;
 import com.macmarket.cart.domain.model.CartItem;
 import com.macmarket.cart.infrastructure.persistence.entity.CartItemJpaEntity;
 import com.macmarket.cart.infrastructure.persistence.entity.CartJpaEntity;
+import com.macmarket.catalog.domain.model.ProductId;
 
 import org.springframework.stereotype.Component;
 
@@ -15,7 +16,7 @@ public class CartPersistenceMapper {
 
     public Cart toDomain(CartJpaEntity entity) {
         var items = entity.getItems().stream()
-            .map(i -> new CartItem(i.getProductId(), i.getProductName(), i.getProductImage(), i.getUnitPrice(), i.getQuantity()))
+            .map(i -> CartItem.create(ProductId.of(i.getProductId()), i.getProductName(), i.getProductImage(), i.getUnitPrice(), i.getQuantity()))
             .toList();
         return Cart.reconstitute(CartId.of(entity.getId()), entity.getUserId(), items);
     }
@@ -28,7 +29,7 @@ public class CartPersistenceMapper {
         var items = cart.getItems().stream().map(item -> {
             var itemEntity = new CartItemJpaEntity();
             itemEntity.setCart(entity);
-            itemEntity.setProductId(item.getProductId());
+            itemEntity.setProductId(item.getProductId().value());
             itemEntity.setProductName(item.getProductName());
             itemEntity.setProductImage(item.getProductImage());
             itemEntity.setUnitPrice(item.getUnitPrice());

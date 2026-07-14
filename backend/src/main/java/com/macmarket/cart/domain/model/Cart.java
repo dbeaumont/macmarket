@@ -4,7 +4,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.UUID;
+
+import com.macmarket.catalog.domain.model.ProductId;
 
 public class Cart {
 
@@ -26,7 +27,7 @@ public class Cart {
         return new Cart(id, userId, items);
     }
 
-    public void addItem(UUID productId, String name, String image, BigDecimal price, int quantity) {
+    public void addItem(ProductId productId, String name, String image, BigDecimal price, int quantity) {
         var existing = items.stream()
             .filter(i -> i.getProductId().equals(productId))
             .findFirst();
@@ -34,18 +35,18 @@ public class Cart {
         if (existing.isPresent()) {
             existing.get().increaseQuantity(quantity);
         } else {
-            items.add(new CartItem(productId, name, image, price, quantity));
+            items.add(CartItem.create(productId, name, image, price, quantity));
         }
     }
 
-    public void updateItemQuantity(UUID productId, int quantity) {
+    public void updateItemQuantity(ProductId productId, int quantity) {
         items.stream()
             .filter(i -> i.getProductId().equals(productId))
             .findFirst()
             .ifPresent(item -> item.updateQuantity(quantity));
     }
 
-    public void removeItem(UUID productId) {
+    public void removeItem(ProductId productId) {
         items.removeIf(i -> i.getProductId().equals(productId));
     }
 

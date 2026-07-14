@@ -2,6 +2,7 @@ package com.macmarket.catalog.application.service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 import com.macmarket.catalog.domain.model.Product;
 import com.macmarket.catalog.domain.model.ProductId;
@@ -27,6 +28,10 @@ public class CatalogQueryService {
     public Product findById(ProductId id) {
         return productRepository.findById(id)
             .orElseThrow(() -> new ProductNotFoundException(id));
+    }
+
+    public Product findById(UUID id) {
+        return findById(ProductId.of(id));
     }
 
     public Product findBySlug(String slug) {

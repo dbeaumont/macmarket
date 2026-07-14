@@ -3,8 +3,13 @@ package com.macmarket.admin.application.service;
 import java.util.List;
 import java.util.UUID;
 
-import com.macmarket.admin.infrastructure.persistence.entity.AdminOrderJpaEntity;
-import com.macmarket.admin.infrastructure.persistence.repository.AdminOrderReadRepository;
+import com.macmarket.admin.domain.model.PageRequestSpec;
+import com.macmarket.admin.domain.model.PageResult;
+import com.macmarket.admin.domain.model.SortDirection;
+import com.macmarket.admin.domain.repository.AdminOrderReadRepository;
+import com.macmarket.admin.domain.repository.AdminOrderReadRepository.AdminOrderDetail;
+import com.macmarket.admin.domain.repository.AdminOrderReadRepository.AdminOrderSummary;
+import com.macmarket.admin.domain.repository.AdminOrderReadRepository.OrderFilter;
 import com.macmarket.admin.presentation.dto.AdminOrderDetailResponse;
 import com.macmarket.admin.presentation.dto.AdminOrderItemResponse;
 import com.macmarket.admin.presentation.dto.AdminOrderResponse;
@@ -13,9 +18,6 @@ import com.macmarket.order.domain.model.OrderId;
 import com.macmarket.order.domain.model.OrderNotFoundException;
 import com.macmarket.order.domain.model.OrderStatus;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,35 +34,28 @@ public class AdminOrderService {
     }
 
     @Transactional(readOnly = true)
-    public Page<AdminOrderResponse> findOrders(String status, int page, int size, String sort) {
-        PageRequest pageRequest = buildPageRequest(page, size, sort);
-
-        Page<AdminOrderJpaEntity> result;
-        if (status != null && !status.isBlank()) {
-            result = orderReadRepository.findByStatusOrderByCreatedAtDesc(status, pageRequest);
-        } else {
-            result = orderReadRepository.findAllByOrderByCreatedAtDesc(pageRequest);
-        }
-
-        return result.map(this::toOrderResponse);
+    public PageResult<AdminOrderResponse> findOrders(String status, int page, int size, String sort) {
+        OrderFilter filter = status != null && !status.isBlank() ? new OrderFilter(status) : OrderFilter.none();
+        PageRequestSpec pageRequest = buildPageRequest(page, size, sort);
+        return orderReadRepository.findOrders(filter, pageRequest).map(this::toOrderResponse);
     }
 
     @Transactional(readOnly = true)
     public AdminOrderDetailResponse findOrderById(UUID id) {
-        AdminOrderJpaEntity entity = orderReadRepository.findById(id)
+        AdminOrderDetail detail = orderReadRepository.findOrderById(id)
             .orElseThrow(() -> new OrderNotFoundException(OrderId.of(id)));
 
-        var items = entity.getItems().stream()
+        var items = detail.items().stream()
             .map(item -> new AdminOrderItemResponse(
-                item.getId(), item.getProductId(), item.getProductName(),
-                item.getProductImage(), item.getUnitPrice(), item.getQuantity(),
-                item.getSubtotal()))
+                item.id(), item.productId(), item.productName(),
+                item.productImage(), item.unitPrice(), item.quantity(),
+                item.subtotal()))
             .toList();
 
         return new AdminOrderDetailResponse(
-            entity.getId(), entity.getUserId(), entity.getStatus(), entity.getTotal(),
-            entity.getShippingName(), entity.getShippingAddress(), entity.getShippingEmail(),
-            items, entity.getCreatedAt(), entity.getUpdatedAt()
+            detail.id(), detail.userId(), detail.status(), detail.total(),
+            detail.shippingName(), detail.shippingAddress(), detail.shippingEmail(),
+            items, detail.createdAt(), detail.updatedAt()
         );
     }
 
@@ -72,27 +67,27 @@ public class AdminOrderService {
 
     @Transactional(readOnly = true)
     public List<AdminOrderResponse> findOrdersByUserId(String userId) {
-        return orderReadRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
+        return orderReadRepository.findOrdersByUserId(userId).stream()
             .map(this::toOrderResponse)
             .toList();
     }
 
-    private AdminOrderResponse toOrderResponse(AdminOrderJpaEntity entity) {
+    private AdminOrderResponse toOrderResponse(AdminOrderSummary summary) {
         return new AdminOrderResponse(
-            entity.getId(), entity.getUserId(), entity.getStatus(), entity.getTotal(),
-            entity.getItems().size(), entity.getShippingName(), entity.getShippingAddress(),
-            entity.getShippingEmail(), entity.getCreatedAt(), entity.getUpdatedAt()
+            summary.id(), summary.userId(), summary.status(), summary.total(),
+            summary.itemCount(), summary.shippingName(), summary.shippingAddress(),
+            summary.shippingEmail(), summary.createdAt(), summary.updatedAt()
         );
     }
 
-    private PageRequest buildPageRequest(int page, int size, String sort) {
+    private PageRequestSpec buildPageRequest(int page, int size, String sort) {
         if (sort == null || sort.isBlank()) {
-            return PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+            return PageRequestSpec.of(page, size, "createdAt", SortDirection.DESC);
         }
         String[] parts = sort.split(",");
         String property = parts[0];
-        Sort.Direction direction = parts.length > 1 && "asc".equalsIgnoreCase(parts[1])
-            ? Sort.Direction.ASC : Sort.Direction.DESC;
-        return PageRequest.of(page, size, Sort.by(direction, property));
+        SortDirection direction = parts.length > 1 && "asc".equalsIgnoreCase(parts[1])
+            ? SortDirection.ASC : SortDirection.DESC;
+        return PageRequestSpec.of(page, size, property, direction);
     }
 }
