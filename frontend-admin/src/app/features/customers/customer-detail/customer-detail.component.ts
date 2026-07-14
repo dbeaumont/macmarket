@@ -1,11 +1,12 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { DatePipe, CurrencyPipe } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AdminApiService } from '../../../core/services/admin-api.service';
-import { type AdminOrder, ORDER_STATUS_LABELS } from '../../../core/models/admin.model';
+import { type AdminOrder, type CustomerProfile, ORDER_STATUS_LABELS } from '../../../core/models/admin.model';
 
 @Component({
   selector: 'app-customer-detail',
@@ -16,8 +17,10 @@ import { type AdminOrder, ORDER_STATUS_LABELS } from '../../../core/models/admin
 export class CustomerDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly adminApi = inject(AdminApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly orders = signal<readonly AdminOrder[]>([]);
+  readonly profile = signal<CustomerProfile | null>(null);
   readonly loading = signal(true);
   readonly userId = signal('');
   readonly statusLabels = ORDER_STATUS_LABELS;
@@ -29,12 +32,16 @@ export class CustomerDetailComponent implements OnInit {
   ngOnInit(): void {
     const userId = this.route.snapshot.paramMap.get('userId') ?? '';
     this.userId.set(userId);
-    this.adminApi.getCustomerOrders(userId).subscribe({
+    this.adminApi.getCustomerOrders(userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (o) => {
         this.orders.set(o);
         this.loading.set(false);
       },
       error: () => this.loading.set(false),
+    });
+    this.adminApi.getCustomerProfile(userId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (p) => this.profile.set(p),
+      error: () => this.profile.set(null),
     });
   }
 

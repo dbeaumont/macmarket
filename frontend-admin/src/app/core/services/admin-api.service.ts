@@ -8,6 +8,7 @@ import {
   type AdminOrder,
   type AdminOrderDetail,
   type CustomerSummary,
+  type CustomerProfile,
   type Product,
   type CreateProductRequest,
   type UpdateProductRequest,
@@ -46,6 +47,10 @@ export class AdminApiService {
 
   getCustomerOrders(userId: string): Observable<readonly AdminOrder[]> {
     return this.api.get(`/admin/customers/${userId}/orders`);
+  }
+
+  getCustomerProfile(userId: string): Observable<CustomerProfile | null> {
+    return this.api.get(`/admin/customers/${userId}/profile`);
   }
 
   // Products

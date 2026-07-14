@@ -1,10 +1,14 @@
 package com.macmarket.admin.application.service;
 
 import java.util.Map;
+import java.util.Optional;
 
+import com.macmarket.UserId;
 import com.macmarket.admin.domain.model.PageRequestSpec;
 import com.macmarket.admin.domain.repository.AdminOrderReadRepository;
+import com.macmarket.admin.presentation.dto.CustomerProfileResponse;
 import com.macmarket.admin.presentation.dto.CustomerSummaryResponse;
+import com.macmarket.user.application.service.ShippingProfileApplicationService;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +18,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class AdminCustomerService {
 
     private final AdminOrderReadRepository orderReadRepository;
+    private final ShippingProfileApplicationService shippingProfileService;
 
-    public AdminCustomerService(AdminOrderReadRepository orderReadRepository) {
+    public AdminCustomerService(AdminOrderReadRepository orderReadRepository,
+                                ShippingProfileApplicationService shippingProfileService) {
         this.orderReadRepository = orderReadRepository;
+        this.shippingProfileService = shippingProfileService;
     }
 
     public Map<String, Object> findCustomers(int page, int size) {
@@ -31,5 +38,11 @@ public class AdminCustomerService {
             "size", result.size(),
             "number", result.number()
         );
+    }
+
+    public Optional<CustomerProfileResponse> findProfile(String userId) {
+        return shippingProfileService.findByUserId(UserId.of(userId))
+            .map(profile -> new CustomerProfileResponse(
+                userId, profile.getName(), profile.getAddress(), profile.getEmail().value()));
     }
 }

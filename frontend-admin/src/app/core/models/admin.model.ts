@@ -79,6 +79,13 @@ export interface CustomerSummary {
   readonly lastOrderDate: string;
 }
 
+export interface CustomerProfile {
+  readonly userId: string;
+  readonly name: string;
+  readonly address: string;
+  readonly email: string;
+}
+
 export interface Product {
   readonly id: string;
   readonly name: string;

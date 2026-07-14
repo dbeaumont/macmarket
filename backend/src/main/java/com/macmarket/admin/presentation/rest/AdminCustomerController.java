@@ -6,6 +6,7 @@ import java.util.Map;
 import com.macmarket.admin.application.service.AdminCustomerService;
 import com.macmarket.admin.application.service.AdminOrderService;
 import com.macmarket.admin.presentation.dto.AdminOrderResponse;
+import com.macmarket.admin.presentation.dto.CustomerProfileResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -48,5 +49,17 @@ class AdminCustomerController {
         @Parameter(description = "Identifiant de l'utilisateur client", required = true) @PathVariable String userId
     ) {
         return ResponseEntity.ok(orderService.findOrdersByUserId(userId));
+    }
+
+    @Operation(summary = "Profil d'un client", description = "Nom, adresse et email du client, issus de son dernier profil de livraison enregistré")
+    @ApiResponse(responseCode = "200", description = "Profil du client trouvé")
+    @ApiResponse(responseCode = "204", description = "Aucun profil de livraison enregistré pour ce client")
+    @GetMapping("/{userId}/profile")
+    ResponseEntity<CustomerProfileResponse> getCustomerProfile(
+        @Parameter(description = "Identifiant de l'utilisateur client", required = true) @PathVariable String userId
+    ) {
+        return customerService.findProfile(userId)
+            .map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.noContent().build());
     }
 }

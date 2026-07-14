@@ -10,6 +10,24 @@
   @if (loading()) {
     <div class="flex justify-center py-16"><mat-spinner [diameter]="48" /></div>
   } @else {
+    <!-- Profil -->
+    @if (profile(); as p) {
+      <div class="bg-white rounded-xl border border-gray-200 p-4 space-y-2">
+        <div class="flex items-center gap-2">
+          <mat-icon class="text-gray-400 text-base">person</mat-icon>
+          <span class="font-semibold text-gray-900">{{ p.name }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-sm text-gray-600">
+          <mat-icon class="text-gray-400 text-base">mail</mat-icon>
+          <span>{{ p.email }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-sm text-gray-600">
+          <mat-icon class="text-gray-400 text-base">home</mat-icon>
+          <span>{{ p.address }}</span>
+        </div>
+      </div>
+    }
+
     <!-- Stats -->
     <div class="grid grid-cols-2 gap-4">
       <div class="bg-white rounded-xl border border-gray-200 p-4 text-center">
