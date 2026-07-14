@@ -10,6 +10,7 @@ import com.macmarket.catalog.application.command.UpdateProductCommand;
 import com.macmarket.catalog.application.service.CatalogQueryService;
 import com.macmarket.catalog.application.service.CreateProductService;
 import com.macmarket.catalog.application.service.UpdateProductService;
+import com.macmarket.catalog.domain.model.ProductId;
 import com.macmarket.catalog.presentation.dto.*;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -85,6 +86,17 @@ class CatalogController {
         return ResponseEntity.ok(categories);
     }
 
+    @Operation(summary = "Détail produit par id (administration)", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Produit trouvé")
+    @ApiResponse(responseCode = "403", description = "Accès refusé")
+    @ApiResponse(responseCode = "404", description = "Produit introuvable")
+    @GetMapping("/api/v1/admin/products/{id}")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    ResponseEntity<ProductResponse> getProductById(@PathVariable UUID id) {
+        var product = queryService.findById(ProductId.of(id));
+        return ResponseEntity.ok(responseMapper.toResponse(product));
+    }
+
     @Operation(summary = "Créer un produit", security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponse(responseCode = "201", description = "Produit créé")
     @ApiResponse(responseCode = "403", description = "Accès refusé")
@@ -112,6 +124,18 @@ class CatalogController {
             request.stockQuantity(), request.specs(), request.promotionPercentage()
         );
         var product = updateProductService.execute(command);
+        return ResponseEntity.ok(responseMapper.toResponse(product));
+    }
+
+    @Operation(summary = "Modifier la promotion d'un produit", security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Promotion mise à jour")
+    @ApiResponse(responseCode = "403", description = "Accès refusé")
+    @ApiResponse(responseCode = "404", description = "Produit introuvable")
+    @ApiResponse(responseCode = "422", description = "Taux de promotion invalide")
+    @PutMapping("/api/v1/admin/products/{id}/promotion")
+    @PreAuthorize("hasAnyRole('MANAGER', 'ADMIN')")
+    ResponseEntity<ProductResponse> updatePromotion(@PathVariable UUID id, @Valid @RequestBody UpdatePromotionRequest request) {
+        var product = updateProductService.updatePromotion(id, request.promotionPercentage());
         return ResponseEntity.ok(responseMapper.toResponse(product));
     }
 

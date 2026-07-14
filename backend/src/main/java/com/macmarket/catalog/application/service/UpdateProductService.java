@@ -45,6 +45,16 @@ public class UpdateProductService {
         return product;
     }
 
+    public Product updatePromotion(UUID productId, int promotionPercentage) {
+        var id = ProductId.of(productId);
+        var product = productRepository.findById(id)
+            .orElseThrow(() -> new ProductNotFoundException(id));
+        product.updateDetails(null, null, null, null, null, null, null, null, PromotionRate.of(promotionPercentage));
+        productRepository.save(product);
+        eventPublisher.publish(product.pullDomainEvents());
+        return product;
+    }
+
     public void deactivate(UUID productId) {
         var id = ProductId.of(productId);
         var product = productRepository.findById(id)
