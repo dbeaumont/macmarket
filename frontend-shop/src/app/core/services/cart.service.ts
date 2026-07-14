@@ -111,10 +111,9 @@ export class CartService {
     try {
       await this.apiFetch('/cart/merge', {
         method: 'POST',
-        body: JSON.stringify({ guestCartToken: guestToken }),
+        body: JSON.stringify({ guestToken }),
       });
       this.guestCart.clearToken();
-      await this.fetchCart();
     } catch {
       // Ignore merge errors
     }

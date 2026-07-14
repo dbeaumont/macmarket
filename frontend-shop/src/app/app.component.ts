@@ -22,10 +22,12 @@ export class AppComponent implements OnInit {
 
   ngOnInit(): void {
     this.oidc.checkAuth().subscribe(({ isAuthenticated }) => {
-      if (isAuthenticated) {
-        void this.cartService.mergeGuestCart();
-      }
-      void this.cartService.fetchCart();
+      void (async (): Promise<void> => {
+        if (isAuthenticated) {
+          await this.cartService.mergeGuestCart();
+        }
+        await this.cartService.fetchCart();
+      })();
     });
   }
 }
