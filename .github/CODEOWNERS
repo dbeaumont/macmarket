@@ -1,0 +1,14 @@
+# Propriétaires par défaut pour toute modification
+* @david
+
+# Backend — architecture DDD
+/backend/ @david
+
+# Frontends Angular
+/frontend-admin/ @david
+/frontend-shop/ @david
+
+# Configuration CI/CD et sécurité — revue obligatoire
+/.github/workflows/ @david
+/.github/dependabot.yml @david
+/backend/src/main/java/com/macmarket/SecurityConfig.java @david

@@ -25,7 +25,7 @@ Ce document décrit le rôle de chaque agent disponible dans `.github/agents` et
 | [audit-perf](#performance-reviewer) | Audit qualité | Détection des anti-patterns de performance |
 | [audit-security](#security-auditor) | Audit sécurité | Audit de sécurité OWASP Top 10 |
 | [audit-techdebt](#technical-debt-mapper) | Audit qualité | Cartographie et priorisation de la dette technique |
-| [audit-test-strategy](#test-strategy-advisor) | Audit qualité | Stratégie de tests pour un module ou une feature |
+| [audit-test-strategy](#test-strategy-advisor) | Audit qualité | Stratégie de tests pour un module ou une feature (JUnit 5, TestBed/Vitest Angular, TestContainers) |
 | [audit-ddl](#ddl-auditor) | Audit données | Audit d’un fichier DDL SQL fourni |
 | [devops-cicd](#cicd-pipeline-generator) | DevOps | Génération de pipelines GitLab CI / GitHub Actions |
 | [devops-docker](#dockerfile-advisor) | DevOps | Génération et audit de Dockerfiles optimisés |
@@ -225,6 +225,10 @@ Propose une stratégie de tests pour la feature "confirmer une commande" dans le
 
 ```
 Audite la couverture de tests du module catalog et propose les tests manquants.
+```
+
+```
+Propose une stratégie de tests pour le composant ProductListComponent : TestBed, HttpTestingController, cas limites.
 ```
 
 ---

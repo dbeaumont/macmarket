@@ -102,6 +102,12 @@ Puis créer les fichiers directement.
 - [ ] DTO validé avec Bean Validation
 - [ ] Test unitaire domain créé
 - [ ] Pas d'import Spring dans domain/
+- [ ] @Tag ajouté sur le controller
+- [ ] @Operation sur chaque endpoint (summary + description)
+- [ ] @ApiResponse pour tous les codes HTTP possibles (200/201/204/400/403/404/422/500)
+- [ ] @SecurityRequirement(name = "bearerAuth") si endpoint protégé
+- [ ] @Parameter(description = "...", required = true) sur chaque paramètre de path/query
+- [ ] @Parameter(hidden = true) sur @AuthenticationPrincipal
 ```
 
 ## Contraintes

@@ -93,7 +93,7 @@ Tu es un expert en architecture Angular/TypeScript. Ta mission est de vérifier 
 ## Rapport d'architecture frontend — [nom du fichier]
 
 ### Type détecté
-[Composant / Custom Hook / Store Zustand / Page]
+[Composant / Service / Guard / Pipe / Directive]
 
 ### ✅ Conformes
 - [éléments respectant les règles]
