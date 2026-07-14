@@ -69,9 +69,9 @@ urls: ## Lister toutes les URLs disponibles
 	@echo "║  APPLICATIONS                                                ║"
 	@echo "║  ──────────────────────────────────────────────────────      ║"
 	@echo "║  Boutique        http://localhost:3000                       ║"
-	@echo "║  Boutique (dev)  http://localhost:5173                       ║"
+	@echo "║  Boutique (dev)  http://localhost:4200                       ║"
 	@echo "║  Backoffice      http://localhost:3001                       ║"
-	@echo "║  Backoffice (dev)http://localhost:5174                       ║"
+	@echo "║  Backoffice (dev)http://localhost:4201                       ║"
 	@echo "║                                                              ║"
 	@echo "║  API BACKEND                                                 ║"
 	@echo "║  ──────────────────────────────────────────────────────      ║"
@@ -127,11 +127,11 @@ dev-down: ## Arreter l'infra dev
 backend-run: ## Lancer le backend Spring Boot (dev, hot-reload)
 	cd backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 
-shop-run: ## Lancer le frontend boutique (dev, hot-reload sur 5173)
-	cd frontend-shop && npm run dev
+shop-run: ## Lancer le frontend boutique (dev, hot-reload sur 4200)
+	cd frontend-shop && npm start
 
-admin-run: ## Lancer le frontend backoffice (dev, hot-reload sur 5174)
-	cd frontend-admin && npm run dev
+admin-run: ## Lancer le frontend backoffice (dev, hot-reload sur 4201)
+	cd frontend-admin && npm start
 
 # === Build ===
 
