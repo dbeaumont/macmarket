@@ -2,7 +2,7 @@
 
 ## Statut
 
-Supersédé (remplace ADR-0006 initial « React pour les frontends »)
+Accepté (remplace la décision initiale de cet ADR, qui actait React pour les frontends)
 
 ## Contexte
 

@@ -10,7 +10,7 @@ MacMarket dispose de deux frontends distincts (boutique client et backoffice adm
 
 - Un système d'authentification avec 3 rôles distincts : `CUSTOMER`, `MANAGER`, `ADMIN`
 - Le support des visiteurs non authentifiés pour le catalogue et le panier
-- Un flux sécurisé pour les SPA React (Single Page Applications) sans secret côté client
+- Un flux sécurisé pour les SPA Angular (Single Page Applications) sans secret côté client
 - La gestion des tokens JWT pour l'API REST
 - La possibilité de centraliser la gestion des comptes utilisateurs sans développer un système d'authentification custom
 
@@ -23,18 +23,18 @@ Utiliser **Keycloak 26** comme Identity Provider externalisé, avec le protocole
 **Architecture d'authentification :**
 
 ```
-React SPA → Authorization Request PKCE → Keycloak
+Angular SPA → Authorization Request PKCE → Keycloak
          ← Authorization Code
          → Token Request (code + code_verifier)
          ← access_token JWT (RS256) + refresh_token + id_token
 
-React SPA → GET /api/v1/orders (Authorization: Bearer JWT)
+Angular SPA → GET /api/v1/orders (Authorization: Bearer JWT)
 Spring Boot → valide JWT via JWK URI (Keycloak)
            → extrait realm_access.roles → ROLE_CUSTOMER / ROLE_MANAGER / ROLE_ADMIN
 ```
 
 **Choix techniques associés :**
-- Bibliothèque frontend : `react-oidc-context` (wrapper de `oidc-client-ts`)
+- Bibliothèque frontend : `angular-auth-oidc-client`
 - Spring Boot : `spring-boot-starter-oauth2-resource-server` (validation JWT stateless)
 - Les rôles Keycloak (`realm_access.roles`) sont convertis en `GrantedAuthority` Spring Security
 - Sessions Spring stateless (`SessionCreationPolicy.STATELESS`)
@@ -88,6 +88,6 @@ Spring Boot → valide JWT via JWK URI (Keycloak)
 
 - [docs/05-security.md](../05-security.md) — détail du modèle RBAC et de la configuration Spring Security
 - ADR-0001 — Monolithe modulaire (contexte de déploiement)
-- ADR-0006 — React pour les frontends (intégration `react-oidc-context`)
+- [ADR-0006](ADR-0006-angular-frontends.md) — Angular pour les frontends (intégration `angular-auth-oidc-client`)
 - [Keycloak Documentation](https://www.keycloak.org/documentation)
 - [OAuth 2.0 PKCE — RFC 7636](https://www.rfc-editor.org/rfc/rfc7636)
