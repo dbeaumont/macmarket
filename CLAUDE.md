@@ -8,7 +8,7 @@ Ces instructions s'appliquent à tout développement dans ce projet. Elles ne so
 
 ## TypeScript / Angular / React
 
-Les règles de typage strict, d'immutabilité et de gestion des erreurs ci-dessous s'appliquent **identiquement** aux deux stacks frontend autorisées : Angular et React. Angular et React sont des choix équivalents — chaque projet retient l'une des deux stacks (justifiée si besoin par un ADR, ex. ADR-0006 pour macmarket qui acte React) et ne mélange pas les deux au sein d'une même application. Seules les règles d'architecture (composants, gestion d'état, cycle de vie) diffèrent selon la stack retenue et sont décrites dans des sous-sections dédiées.
+Les règles de typage strict, d'immutabilité et de gestion des erreurs ci-dessous s'appliquent **identiquement** aux deux stacks frontend autorisées : Angular et React. Angular et React sont des choix équivalents — chaque projet retient l'une des deux stacks (justifiée si besoin par un ADR, ex. ADR-0006 pour macmarket qui acte Angular) et ne mélange pas les deux au sein d'une même application. Seules les règles d'architecture (composants, gestion d'état, cycle de vie) diffèrent selon la stack retenue et sont décrites dans des sous-sections dédiées.
 
 ### Typage strict — aucune exception
 

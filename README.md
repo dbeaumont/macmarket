@@ -1,6 +1,6 @@
 # MacMarket
 
-Marketplace e-commerce pour Mac, construite avec Spring Boot + Spring Modulith, React, PostgreSQL, Keycloak et un assistant IA (Ollama + qwen2.5:3b).
+Marketplace e-commerce pour Mac, construite avec Spring Boot + Spring Modulith, Angular, PostgreSQL, Keycloak et un assistant IA (Ollama + qwen2.5:3b).
 
 ## Prerequis
 
