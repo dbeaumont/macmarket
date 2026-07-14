@@ -1,5 +1,5 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, Validators, ReactiveFormsModule, FormArray, FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -14,7 +14,7 @@ import { CATEGORY_LABELS } from '../../../core/models/admin.model';
 @Component({
   selector: 'app-product-form',
   standalone: true,
-  imports: [ReactiveFormsModule, MatButtonModule, MatIconModule, MatFormFieldModule,
+  imports: [RouterLink, ReactiveFormsModule, MatButtonModule, MatIconModule, MatFormFieldModule,
             MatInputModule, MatSelectModule, MatProgressSpinnerModule],
   templateUrl: './product-form.component.html',
 })
