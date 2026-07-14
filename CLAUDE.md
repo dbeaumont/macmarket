@@ -609,7 +609,7 @@ public record ErrorResponse(String code, String message, Instant timestamp) {}
 - **Pas de code commenté** laissé dans le dépôt — supprimer ou ouvrir un ticket
 - **Pas de `TODO` anonyme** — si un TODO est laissé, il doit avoir un ticket de suivi référencé
 - Chaque PR doit être accompagnée de tests couvrant le comportement ajouté ou modifié
-- Les commits suivent la convention `feat:`, `fix:`, `refactor:`, `test:`, `chore:`
+- Les commits suivent la convention `feat:`, `fix:`, `refactor:`, `test:`, `chore:`, `docs:`
 - Signaler immédiatement toute dette technique introduite pour contrainte de délai
 
 # Conventions de documentation SI
