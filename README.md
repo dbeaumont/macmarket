@@ -39,8 +39,8 @@ make up
 ```bash
 make dev            # lance l'infra (postgres, keycloak, ollama, mailpit)
 make backend-run    # terminal 1 — Spring Boot sur 8080
-make shop-run       # terminal 2 — boutique sur 5173
-make admin-run      # terminal 3 — backoffice sur 5174
+make shop-run       # terminal 2 — boutique sur 4200
+make admin-run      # terminal 3 — backoffice sur 4201
 ```
 
 ## Comptes de test
@@ -70,7 +70,7 @@ make clean          # tout nettoyer
 ## Architecture
 
 - **Backend** : Java 25, Spring Boot 4.1, Spring Modulith 2.0.5, Spring AI 2.0
-- **Frontend** : 2 apps React (boutique + backoffice), Vite, TypeScript, Tailwind CSS v4, shadcn/ui
+- **Frontend** : 2 apps Angular 21 (boutique + backoffice), Angular Material, TypeScript, Tailwind CSS v4
 - **Auth** : Keycloak (OAuth2/OIDC, PKCE), 3 roles (CUSTOMER, MANAGER, ADMIN)
 - **IA** : Ollama + qwen2.5:3b, Spring AI ChatClient, streaming SSE
 - **DB** : PostgreSQL 17, Flyway migrations
@@ -81,8 +81,8 @@ make clean          # tout nettoyer
 
 ```mermaid
 graph TB
-    SHOP["Boutique React :3000"]
-    ADMIN_FE["Backoffice React :3001"]
+    SHOP["Boutique Angular :3000"]
+    ADMIN_FE["Backoffice Angular :3001"]
     KC["Keycloak OAuth2/OIDC :8180"]
 
     subgraph backend["Spring Boot :8080"]
