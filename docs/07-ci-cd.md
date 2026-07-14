@@ -31,10 +31,10 @@ Ce test garantit qu'aucun module ne viole les règles de dépendances définies.
 
 | Type | Technologie | Localisation |
 |------|-------------|-------------|
-| Tests unitaires composants | Vitest + Testing Library | `src/**/*.test.ts(x)` |
-| Tests de store | Vitest | `cart-store.test.ts` |
-| Tests de pages | Vitest + Testing Library | `CustomerDetailPage.test.tsx`, `CustomersPage.test.tsx` |
-| Tests lib | Vitest | `api.test.ts` |
+| Tests unitaires composants/services | Vitest (builder `@angular/build:unit-test`) | `src/app/**/*.spec.ts` |
+| Vérification de types | `tsc --noEmit` | Étape CI dédiée (voir pipeline ci-dessous) |
+
+> Les frontends sont passés de Vitest + Testing Library sur React (`*.test.tsx`) à Vitest intégré au builder Angular (`*.spec.ts`) lors de la migration vers Angular (ADR-0006).
 
 ### Commandes de test
 
@@ -52,41 +52,46 @@ cd frontend-shop && npm test
 cd frontend-admin && npm test
 
 # Via Makefile
-make test           # tous les tests
+make test           # tous les tests backend
 make test-modularity # Spring Modulith uniquement
-make test-frontend  # frontends
+make test-frontend  # tests des deux frontends (Vitest)
 ```
 
 ## Pipeline CI/CD
 
-> **Hypothèse** : Aucun fichier `.github/workflows/` ou `.gitlab-ci.yml` n'a été détecté dans le projet. La section suivante décrit le pipeline recommandé basé sur la structure du projet.
-
-### Pipeline recommandé
+Un pipeline GitHub Actions est défini dans [`.github/workflows/ci.yml`](../.github/workflows/ci.yml), déclenché sur `push` et `pull_request` vers `main`/`develop`. Il comprend 3 jobs indépendants exécutés en parallèle :
 
 ```mermaid
 graph LR
-    subgraph CI["CI — À chaque push"]
-        LINT["Lint\n(eslint)"]
-        TEST_FRONT["Tests Frontend\n(vitest)"]
-        TEST_BACK["Tests Backend\n(mvn test)"]
-        BUILD_BACK["Build Backend\n(mvn package)"]
-        BUILD_FRONT["Build Frontend\n(vite build)"]
+    subgraph CI["CI — push / pull_request (main, develop)"]
+        subgraph Backend["Job backend"]
+            B1["Setup Java 25"]
+            B2["mvn compile"]
+            B3["mvn verify\n(tests unitaires + intégration)"]
+            B4["Upload rapport surefire"]
+        end
+        subgraph FA["Job frontend-admin"]
+            FA1["Setup Node 22"]
+            FA2["npm ci"]
+            FA3["tsc --noEmit"]
+            FA4["npm test -- --run"]
+            FA5["ng build --configuration production"]
+        end
+        subgraph FS["Job frontend-shop"]
+            FS1["Setup Node 22"]
+            FS2["npm ci"]
+            FS3["tsc --noEmit"]
+            FS4["npm test -- --run"]
+            FS5["ng build --configuration production"]
+        end
     end
 
-    subgraph CD["CD — Sur main/tag"]
-        DOCKER["Build Images Docker\n(multi-stage)"]
-        PUSH["Push Registry"]
-        DEPLOY["Deploy Stack\n(docker compose up)"]
-    end
-
-    LINT --> TEST_FRONT
-    TEST_FRONT --> BUILD_FRONT
-    TEST_BACK --> BUILD_BACK
-    BUILD_BACK --> DOCKER
-    BUILD_FRONT --> DOCKER
-    DOCKER --> PUSH
-    PUSH --> DEPLOY
+    B1 --> B2 --> B3 --> B4
+    FA1 --> FA2 --> FA3 --> FA4 --> FA5
+    FS1 --> FS2 --> FS3 --> FS4 --> FS5
 ```
+
+> **Limitation actuelle** : le pipeline couvre build + tests + vérification de types, mais ne construit pas les images Docker et n'exécute aucun déploiement (pas de job CD). Il n'y a pas non plus d'étape de lint (ESLint) explicite dans `ci.yml`, ni de scan de vulnérabilités.
 
 ## Qualité du code
 
@@ -94,9 +99,9 @@ graph LR
 
 | Outil | Status |
 |-------|:---:|
-| Tests unitaires | Présents |
+| Tests unitaires | Présents (CI : job `backend`) |
 | Tests modulaires (Spring Modulith) | Présents |
-| Tests d'intégration (Testcontainers) | Infrastructure disponible |
+| Tests d'intégration (Testcontainers) | Infrastructure disponible, exécutée via `mvn verify` en CI |
 | Scan CVE (OWASP Dependency-Check) | ⚠️ Non détecté |
 | Analyse statique (SonarQube) | ⚠️ Non détecté |
 | Coverage (JaCoCo) | ⚠️ Non configuré dans pom.xml |
@@ -105,9 +110,9 @@ graph LR
 
 | Outil | Status |
 |-------|:---:|
-| ESLint | Configuré (`eslint.config.js`) |
-| TypeScript strict | `tsconfig.json` — à vérifier |
-| Tests Vitest | Présents |
+| ESLint | ⚠️ Non exécuté en CI (pas d'étape lint dans `ci.yml`) |
+| TypeScript strict | `tsconfig.json` — `strict: true` activé, vérifié en CI (`tsc --noEmit`) |
+| Tests Vitest | Présents (CI : jobs `frontend-admin` / `frontend-shop`) |
 | Coverage | ⚠️ Non configuré explicitement |
 
 ## Makefile — Commandes disponibles
@@ -116,21 +121,31 @@ graph LR
 |-------|-------------|
 | `make help` | Afficher l'aide |
 | `make init` | Créer `.env` et dossiers `data/` |
+| `make first-time` | Premier lancement : régénère les lockfiles npm + stack + modèle LLM |
 | `make up` | Lancer toute la stack (7 services) |
 | `make down` | Arrêter la stack |
 | `make restart` | Redémarrer |
 | `make logs` | Voir les logs |
 | `make status` | Statut des services |
-| `make urls` | Lister toutes les URLs |
+| `make urls` | Lister toutes les URLs disponibles |
 | `make dev` | Mode développement (infra seulement) |
+| `make dev-down` | Arrêter l'infra dev |
+| `make backend-run` | Lancer le backend en local (hot-reload) |
+| `make shop-run` | Lancer le frontend boutique en local (hot-reload) |
+| `make admin-run` | Lancer le frontend backoffice en local (hot-reload) |
 | `make build` | Construire toutes les images Docker |
-| `make test` | Lancer tous les tests |
+| `make build-no-cache` | Reconstruire toutes les images Docker sans cache |
+| `make build-backend` / `build-shop` / `build-admin` | Construire une image Docker spécifique |
+| `make test` | Lancer les tests backend (Testcontainers) |
 | `make test-modularity` | Tests Spring Modulith |
-| `make test-frontend` | Tests frontends |
+| `make test-frontend` | Tests des deux frontends (Vitest) |
+| `make npm-lockfiles` | Régénérer les `package-lock.json` (dépend du registre npm du poste) |
 | `make db-reset` | Réinitialiser la base de données |
 | `make db-shell` | Ouvrir un shell PostgreSQL |
+| `make ollama-ensure` | Télécharger le modèle LLM configuré s'il est absent |
 | `make ollama-status` | Statut Ollama |
-| `make ollama-pull` | Télécharger le modèle IA |
+| `make ollama-logs` | Logs du pull initial du modèle |
+| `make ollama-pull` | Re-télécharger le modèle LLM |
 | `make clean` | Nettoyer les conteneurs |
 | `make reset` | Réinitialisation complète |
 

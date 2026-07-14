@@ -18,8 +18,8 @@
 ```mermaid
 graph TB
     subgraph Frontends
-        SHOP["🛍️ Boutique React<br/>:3000 / :5173 (dev)"]
-        ADMIN["🔧 Backoffice React<br/>:3001 / :5174 (dev)"]
+        SHOP["🛍️ Boutique Angular<br/>:3000 / :4200 (dev)"]
+        ADMIN["🔧 Backoffice Angular<br/>:3001 / :4201 (dev)"]
     end
 
     subgraph Backend["☕ Spring Boot :8080"]
@@ -65,15 +65,15 @@ graph TB
 
 | Composant | Technologie | Version |
 |-----------|-------------|---------|
-| Framework | React | 19.2 |
+| Framework | Angular | 21.2 |
 | Langage | TypeScript | 5.9 |
-| Build | Vite | 7 |
-| State serveur | TanStack Query | 5 |
-| State client | Zustand | 5 (shop uniquement) |
-| Auth | react-oidc-context / oidc-client-ts | 3.x |
-| UI | shadcn/ui + Tailwind CSS | 4 |
-| Tables | TanStack Table | 8 (admin uniquement) |
-| Graphiques | Recharts | 3 |
+| Build | Angular CLI (`@angular/build`) | 21.2 |
+| State réactif | Angular Signals | natif |
+| UI | Angular Material + Tailwind CSS | 21 / 4 |
+| Icônes | @lucide/angular | 1.23 |
+| Auth | angular-auth-oidc-client | 21 |
+| Graphiques (admin uniquement) | Chart.js + ng2-charts | 4 / 10 |
+| Tests | Vitest (via `@angular/build`) | 4 |
 
 ### Infrastructure
 

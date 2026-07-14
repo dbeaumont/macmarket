@@ -37,30 +37,33 @@ Presentation → Application → Domain ← Infrastructure
 - Pattern : load → behavior → save → publish events
 - Commands et Queries sous forme de `record` immuables
 
-## Conventions de code — Frontend React
+## Conventions de code — Frontend Angular
 
 ### Typage strict
 
-- `strict: true` dans `tsconfig.json`
+- `strict: true` dans `tsconfig.json` (+ `strictTemplates`, `strictInjectionParameters`, `strictInputAccessModifiers`)
 - Aucun `any` — utiliser `unknown` puis type guard
-- Toutes les propriétés d'interface en `readonly`
+- Toutes les propriétés d'interface en `readonly` (voir `core/models/*.ts`)
 
 ### Immutabilité
 
 - Jamais de mutation directe : utiliser spread `{...obj}`, `[...arr]`
-- Store Zustand toujours mis à jour par spread (`set(state => ({ items: [...state.items, item] }))`)
+- État réactif mis à jour via `signal.update()` avec de nouveaux tableaux/objets (`[...prev.slice(0, -1), ...]`), jamais de `push`/`splice`/`sort` en place
 
 ### Séparation des responsabilités
 
-- Composants fonctionnels — aucune logique métier
-- Appels API dans des **custom hooks** (`use-orders.ts`, `use-products.ts`) via TanStack Query
-- État client partagé dans des **stores Zustand** (`cart-store.ts`)
+- Composants standalone, fonctionnels — aucune logique métier dans le template ou la classe de présentation
+- Composants standalone (pas de `NgModule`), `inject()` plutôt que l'injection par constructeur
+- Appels API et logique métier isolés dans des **services injectables** (`providedIn: 'root'`), état exposé via **Angular Signals** (`signal`/`computed`/`asReadonly()`) — ex. `cart.service.ts`, `chat.service.ts`
+- Composants réutilisables dans `shared/components/`, pages lazy-loadées dans `features/`
 
 ### Gestion de l'authentification
 
-- Token OIDC géré par `react-oidc-context`
-- Le token est injecté dans les requêtes via `setTokenProvider()` dans `api.ts`
+- Token OIDC géré par `angular-auth-oidc-client`
+- Guards `CanActivateFn` (`auth.guard.ts`, `admin.guard.ts`) protègent les routes selon le rôle
 - Les rôles Keycloak sont extraits du claim `realm_access.roles`
+
+> **Point de vigilance identifié en revue** : plusieurs `.subscribe()` manuels ne sont pas nettoyés via `takeUntilDestroyed()` (et le pipe `async` n'est utilisé nulle part dans les deux projets) — voir [Dette technique identifiée](#dette-technique-identifiée).
 
 ## Patterns appliqués
 
@@ -79,11 +82,12 @@ Presentation → Application → Domain ← Infrastructure
 
 | Niveau | Backend | Frontend |
 |--------|---------|---------|
-| Unitaire domaine | JUnit 5 — pur Java, sans Spring | Vitest + Testing Library |
-| Unitaire store/hook | — | Vitest |
+| Unitaire domaine | JUnit 5 — pur Java, sans Spring | Vitest (`*.spec.ts`, builder `@angular/build`) |
+| Unitaire composant/service | — | Vitest |
 | Modulaire | Spring Modulith `verify()` | — |
 | Intégration | `@SpringBootTest` + Testcontainers PostgreSQL | — |
 | Sécurité | `spring-security-test` | — |
+| Vérification de types | — | `tsc --noEmit` (étape CI dédiée) |
 
 **Principe** : les tests du domaine sont des tests Java purs, sans contexte Spring, ce qui les rend rapides et fiables.
 
@@ -98,9 +102,9 @@ Presentation → Application → Domain ← Infrastructure
 
 ### Frontend
 
-- `apiFetch()` lève une `Error` avec le message de l'API ou `API error ${status}`
-- TanStack Query expose `error` dans les hooks pour affichage dans l'UI
-- Sonner (toasts) pour les retours utilisateur (ajout panier, erreurs)
+- Les services HTTP lèvent une erreur exploitée par les composants appelants pour affichage dans l'UI
+- Angular Material (`MatSnackBar`) pour les retours utilisateur (ajout panier, erreurs)
+- ⚠️ Plusieurs blocs `catch` avalent silencieusement l'erreur sans typage `unknown` ni log (ex. `cart.service.ts`, `chat.service.ts` — commentaires `// Ignore ... errors` sans traitement) : à corriger, contraire à la règle « pas de try/catch vides »
 
 ## Bonnes pratiques de configuration
 
@@ -115,8 +119,16 @@ Presentation → Application → Domain ← Infrastructure
 |-------|:---:|-------------|
 | Scan CVE | Haute | Pas de OWASP Dependency-Check ni Trivy dans le pipeline |
 | Métriques | Moyenne | Seul `/actuator/health` exposé — pas de Micrometer/Prometheus |
-| Coverage | Moyenne | Pas de configuration JaCoCo ni de seuil de coverage |
+| Coverage | Moyenne | Pas de configuration JaCoCo ni de seuil de coverage, ni de coverage frontend |
 | Rate limiting | Moyenne | Aucun rate limiting sur `/api/v1/assistant/chat` |
 | Image Docker `latest` | Basse | `ollama/ollama:latest` non fixé en production |
-| CI/CD | Haute | Aucun pipeline CI/CD automatisé détecté |
+| CI/CD — CD manquant | Moyenne | `ci.yml` couvre build+tests mais ne construit pas les images Docker et n'exécute aucun déploiement |
+| CI/CD — Lint absent | Basse | Aucune étape ESLint dans `ci.yml` |
 | Audit trail | Moyenne | Pas de log d'audit pour les actions sensibles |
+| Cart — encapsulation | Moyenne | `Cart.getItems()` expose l'entité interne mutable `CartItem` hors de l'agrégat (lue directement par `CartResponseMapper`) |
+| Cart — ID faible | Basse | `Cart`/`CartRepository` utilisent `String userId` au lieu du VO `UserId` (incohérent avec `order`/`user`) |
+| Domain Events manquants | Basse | `user` (ShippingProfile) ne publie aucun Domain Event ; `StockInsufficientEvent` (catalog) n'est jamais publié |
+| Presentation → Domain | Moyenne | 4 contexts (`cart`, `catalog`, `order`, `payment`) retournent l'agrégat du domaine depuis les Application Services, mappé en DTO dans un mapper de présentation qui importe directement le domaine |
+| Frontend — cleanup Observable | Moyenne | `takeUntilDestroyed()` / pipe `async` non généralisés — plusieurs `.subscribe()` sans nettoyage dans les deux frontends |
+| Frontend — catch silencieux | Basse | Quelques `catch` sans typage `unknown` ni log (`cart.service.ts`, `chat.service.ts`) |
+| Frontend — état non-signal | Basse | Champs de filtre/pagination mutables (`search = ''`, `page = 0`) au lieu de `signal()`, incohérent avec le reste des composants |

@@ -171,7 +171,7 @@ stateDiagram-v2
 sequenceDiagram
     actor V as Visiteur
     actor C as Client connecté
-    participant FC as Boutique React
+    participant FC as Boutique Angular
     participant API as CartController
     participant KC as Keycloak
 
@@ -192,7 +192,7 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor C as Client
-    participant FC as Boutique React
+    participant FC as Boutique Angular
     participant AC as AssistantController
     participant CS as ChatService
     participant CB as CatalogContextProvider

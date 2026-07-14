@@ -63,9 +63,10 @@ Voir [api/backend-api.md](api/backend-api.md) pour une **référence statique** 
 
 | Champ | Valeur |
 |-------|--------|
-| Version de la documentation | 1.0 |
-| Date d'analyse | 2026-07-07 |
+| Version de la documentation | 1.1 |
+| Date d'analyse initiale | 2026-07-07 |
+| Dernière mise à jour | 2026-07-14 (migration frontends React → Angular) |
 | Méthode | Analyse statique du code source |
 | Backend | Spring Boot 4.1.0 / Java 25 |
-| Frontend | React 19 / TypeScript 5.9 |
+| Frontend | Angular 21 / TypeScript 5.9 |
 | Outil de génération | GitHub Copilot (mode retrodoc) |

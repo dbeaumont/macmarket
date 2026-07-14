@@ -7,7 +7,7 @@ MacMarket utilise **Keycloak 26** comme Identity Provider, avec le protocole **O
 ```mermaid
 sequenceDiagram
     actor U as Utilisateur
-    participant FC as React (Boutique/Admin)
+    participant FC as Angular (Boutique/Admin)
     participant KC as Keycloak :8180
     participant API as Spring Boot :8080
 
@@ -85,7 +85,7 @@ graph LR
 ## Panier invité — gestion du token
 
 Le panier sans authentification utilise un token guest opaque (`X-Guest-Cart-Token`) :
-- Généré côté React dans `localStorage`
+- Généré côté Angular dans `localStorage`
 - Envoyé en header HTTP sur toutes les requêtes cart non authentifiées
 - Fusionné dans le panier du compte lors de la connexion via `POST /api/v1/cart/merge`
 

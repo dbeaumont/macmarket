@@ -18,17 +18,18 @@
 
 | Composant | Boutique | Backoffice |
 |-----------|:---:|:---:|
-| React | 19.2 | 19.2 |
+| Angular (core, common, router, forms, compiler) | 21.2 | 21.2 |
+| Angular Material + CDK | 21.2 | 21.2 |
 | TypeScript | 5.9 | 5.9 |
-| Vite | 7 | 7 |
-| TanStack Query | 5 | 5 |
-| TanStack Table | — | 8 |
-| Zustand | 5 | — |
-| react-oidc-context | 3 | 3 |
-| shadcn/ui + Tailwind | 4 | 4 |
-| Recharts | 3 | 3 |
-| Sonner (toasts) | oui | — |
-| Embla Carousel | oui | — |
+| Build | `@angular/build` / `@angular/cli` 21.2 | idem |
+| État réactif | Signals (natif) | Signals (natif) |
+| angular-auth-oidc-client | 21 | 21 |
+| Tailwind CSS (`@tailwindcss/postcss`) | 4 | 4 |
+| @lucide/angular (icônes) | 1.23 | 1.23 |
+| Chart.js + ng2-charts | — | 4 / 10 |
+| Tests | Vitest 4 (via `@angular/build`) | Vitest 4 |
+
+> Les deux frontends ne portent plus aucune dépendance React/Vite/TanStack/Zustand/shadcn — retirées lors de la migration vers Angular (voir [ADR-0006](adr/ADR-0006-angular-frontends.md)).
 
 ## Endpoints REST complets
 

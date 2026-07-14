@@ -85,7 +85,7 @@ graph LR
 ```mermaid
 sequenceDiagram
     actor C as Client
-    participant FC as Boutique React
+    participant FC as Boutique Angular
     participant KC as Keycloak
     participant CART as CartController
     participant ORDER as OrderController
