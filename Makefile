@@ -1,7 +1,7 @@
 .PHONY: help init up down restart logs status urls dev dev-down \
         first-time npm-lockfiles \
         backend-run shop-run admin-run \
-        build build-backend build-shop build-admin \
+        build build-no-cache build-backend build-shop build-admin \
         test test-modularity test-frontend \
         db-reset db-shell \
         ollama-status ollama-logs ollama-pull ollama-ensure \
@@ -137,6 +137,9 @@ admin-run: ## Lancer le frontend backoffice (dev, hot-reload sur 5174)
 
 build: ## Construire toutes les images Docker
 	$(COMPOSE) build
+
+build-no-cache: ## Reconstruire toutes les images Docker sans cache
+	$(COMPOSE) build --no-cache
 
 build-backend: ## Construire uniquement l'image backend
 	$(COMPOSE) build backend
