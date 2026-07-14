@@ -5,7 +5,7 @@ Flux complet depuis le clic "Commander" jusqu'à l'email de confirmation.
 ```mermaid
 sequenceDiagram
     actor C as Client
-    participant FC as Boutique React
+    participant FC as Boutique Angular
     participant KC as Keycloak
     participant OC as OrderController
     participant POS as PlaceOrderService

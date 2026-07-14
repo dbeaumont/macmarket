@@ -6,7 +6,7 @@ Flux du panier sans compte (guest token) jusqu'à la fusion après authentificat
 sequenceDiagram
     actor V as Visiteur (non connecté)
     actor C as Client (après login)
-    participant FC as Boutique React
+    participant FC as Boutique Angular
     participant LS as localStorage
     participant KC as Keycloak
     participant CC as CartController

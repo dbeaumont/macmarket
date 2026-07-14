@@ -5,8 +5,8 @@ Vue d'ensemble de tous les services et leurs connexions.
 ```mermaid
 graph TB
     subgraph Clients["Clients web"]
-        SHOP["🛍️ Boutique React\n:3000 / :5173 dev"]
-        ADMIN["🔧 Backoffice React\n:3001 / :5174 dev"]
+        SHOP["🛍️ Boutique Angular\n:3000 / :4200 dev"]
+        ADMIN["🔧 Backoffice Angular\n:3001 / :4201 dev"]
     end
 
     subgraph Backend["☕ Spring Boot :8080"]

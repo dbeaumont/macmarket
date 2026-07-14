@@ -5,7 +5,7 @@ Flux du chat avec l'assistant IA intégrant le contexte catalogue et le streamin
 ```mermaid
 sequenceDiagram
     actor C as Client
-    participant FC as Boutique React
+    participant FC as Boutique Angular
     participant AC as AssistantController
     participant CS as ChatService
     participant PB as PromptBuilder

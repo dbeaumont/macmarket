@@ -1,11 +1,11 @@
 # Séquence — Authentification OIDC PKCE + validation JWT
 
-Flux d'authentification complet entre le frontend React, Keycloak et l'API Spring Boot.
+Flux d'authentification complet entre le frontend Angular, Keycloak et l'API Spring Boot.
 
 ```mermaid
 sequenceDiagram
     actor U as Utilisateur
-    participant FC as React (Boutique/Admin)
+    participant FC as Angular (Boutique/Admin)
     participant KC as Keycloak :8180
     participant API as Spring Boot :8080
 
@@ -24,7 +24,7 @@ sequenceDiagram
     FC->>KC: POST /realms/macmarket/protocol/openid-connect/token\n{code, code_verifier, client_id, redirect_uri}
     KC-->>FC: access_token (JWT RS256)\n+ refresh_token\n+ id_token
 
-    Note over FC: Stockage token en mémoire\n(react-oidc-context)
+    Note over FC: Stockage token en mémoire\n(angular-auth-oidc-client)
     FC->>FC: window.history.replaceState()\n(supprime ?code= de l'URL)
 
     Note over FC, API: Appel API authentifié
@@ -38,7 +38,7 @@ sequenceDiagram
 
     API-->>FC: 200 OrdersResponse
 
-    Note over FC, KC: Renouvellement silencieux (automaticSilentRenew: true)
+    Note over FC, KC: Renouvellement silencieux (silentRenew: true, useRefreshToken: true)
 
     FC->>KC: POST /token (refresh_token)
     KC-->>FC: Nouveau access_token
