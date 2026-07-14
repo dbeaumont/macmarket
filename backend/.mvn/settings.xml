@@ -6,8 +6,8 @@
 
   <mirrors>
     <mirror>
-      <id>jfrog-enterprise</id>
-      <name>JFrog Artifactory — miroir Maven entreprise</name>
+      <id>artifactory</id>
+      <name>Artifactory — miroir Maven</name>
       <url>${env.MAVEN_MIRROR_URL}</url>
       <mirrorOf>*</mirrorOf>
     </mirror>
