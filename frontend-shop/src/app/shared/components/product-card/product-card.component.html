@@ -1,7 +1,7 @@
 <div class="group relative overflow-hidden rounded-xl border border-gray-200 bg-white transition-all hover:shadow-lg hover:-translate-y-1">
   <!-- Promo badge -->
   @if (product().promotionPercentage > 0) {
-    <span class="absolute top-3 left-3 z-10 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+    <span class="absolute top-0 left-0 z-10 rounded-tl-xl rounded-br-lg bg-red-500 text-white text-sm font-bold px-3 py-1.5">
       -{{ product().promotionPercentage }}%
     </span>
   }
