@@ -1,4 +1,5 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,9 +26,10 @@ import { OidcSecurityService } from 'angular-auth-oidc-client';
 export class HomeComponent implements OnInit {
   private readonly oidc = inject(OidcSecurityService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   ngOnInit(): void {
-    this.oidc.isAuthenticated$.subscribe(({ isAuthenticated }) => {
+    this.oidc.isAuthenticated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ isAuthenticated }) => {
       if (isAuthenticated) void this.router.navigate(['/dashboard']);
     });
   }

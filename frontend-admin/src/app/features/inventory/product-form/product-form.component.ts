@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { FormBuilder, Validators, ReactiveFormsModule, FormArray, FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -24,6 +25,7 @@ export class ProductFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly isEdit = signal(false);
   readonly loading = signal(false);
@@ -54,7 +56,7 @@ export class ProductFormComponent implements OnInit {
     if (this.productId) {
       this.isEdit.set(true);
       this.loading.set(true);
-      this.adminApi.getProduct(this.productId).subscribe({
+      this.adminApi.getProduct(this.productId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: (p) => {
           this.form.patchValue({
             name: p.name,
@@ -75,12 +77,15 @@ export class ProductFormComponent implements OnInit {
     }
 
     // Auto-slug from name
-    this.form.get('name')?.valueChanges.subscribe((name) => {
-      if (!this.isEdit()) {
-        const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-        this.form.get('slug')?.setValue(slug, { emitEvent: false });
-      }
-    });
+    this.form
+      .get('name')
+      ?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((name) => {
+        if (!this.isEdit()) {
+          const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          this.form.get('slug')?.setValue(slug, { emitEvent: false });
+        }
+      });
   }
 
   addSpec(key = '', value = ''): void {
@@ -122,7 +127,7 @@ export class ProductFormComponent implements OnInit {
       ? this.adminApi.updateProduct(this.productId, data)
       : this.adminApi.createProduct(data);
 
-    obs.subscribe({
+    obs.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.snackBar.open(this.isEdit() ? 'Produit mis à jour' : 'Produit créé', 'OK', { duration: 2000 });
         void this.router.navigate(['/inventory']);

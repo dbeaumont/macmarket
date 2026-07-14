@@ -1,10 +1,12 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { DatePipe, CurrencyPipe } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { switchMap } from 'rxjs';
 import { OrderService } from '../../../core/services/order.service';
 import { type OrderResponse, type PaymentResponse, ORDER_STATUS_LABELS } from '../../../core/models/order.model';
 
@@ -18,6 +20,7 @@ export class OrderDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly orderService = inject(OrderService);
   private readonly snackBar = inject(MatSnackBar);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly order = signal<OrderResponse | null>(null);
   readonly payment = signal<PaymentResponse | null>(null);
@@ -27,16 +30,20 @@ export class OrderDetailComponent implements OnInit {
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id') ?? '';
-    this.orderService.getOrder(id).subscribe({
-      next: (o) => {
-        this.order.set(o);
-        this.loading.set(false);
-        this.orderService.getPaymentStatus(id).subscribe({
-          next: (p) => this.payment.set(p),
-        });
-      },
-      error: () => this.loading.set(false),
-    });
+    this.orderService
+      .getOrder(id)
+      .pipe(
+        switchMap((order) => {
+          this.order.set(order);
+          this.loading.set(false);
+          return this.orderService.getPaymentStatus(id);
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: (payment) => this.payment.set(payment),
+        error: () => this.loading.set(false),
+      });
   }
 
   statusClass(status: string): string {
@@ -55,7 +62,7 @@ export class OrderDetailComponent implements OnInit {
     const orderId = this.order()?.id;
     if (!orderId) return;
     this.downloading.set(true);
-    this.orderService.downloadInvoice(orderId).subscribe({
+    this.orderService.downloadInvoice(orderId).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');

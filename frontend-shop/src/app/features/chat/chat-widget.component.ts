@@ -1,4 +1,14 @@
-import { Component, inject, signal, OnInit, ElementRef, ViewChild, AfterViewChecked } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  inject,
+  signal,
+  OnInit,
+  ElementRef,
+  ViewChild,
+  AfterViewChecked,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -21,6 +31,7 @@ export class ChatWidgetComponent implements OnInit, AfterViewChecked {
   readonly chatService = inject(ChatService);
   readonly cartService = inject(CartService);
   private readonly oidc = inject(OidcSecurityService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly isOpen = signal(false);
   inputMessage = '';
@@ -28,7 +39,7 @@ export class ChatWidgetComponent implements OnInit, AfterViewChecked {
   private shouldScroll = false;
 
   ngOnInit(): void {
-    this.oidc.userData$.subscribe(({ userData }) => {
+    this.oidc.userData$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ userData }) => {
       if (userData) {
         const newUserId = userData['sub'] as string;
         if (newUserId !== this.userId) {

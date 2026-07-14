@@ -9,7 +9,7 @@ import { AdminLayoutComponent } from './shared/components/admin-layout/admin-lay
   imports: [RouterOutlet, AdminLayoutComponent],
   template: '<app-admin-layout />',
 })
-export class App implements OnInit {
+export class AppComponent implements OnInit {
   private readonly oidc = inject(OidcSecurityService);
 
   ngOnInit(): void {

@@ -16,7 +16,7 @@ export class ProductService {
     return this.api.get<Product>(`/products/${slug}`);
   }
 
-  getCategories(): Observable<CategoryCount[]> {
-    return this.api.get<CategoryCount[]>('/categories');
+  getCategories(): Observable<readonly CategoryCount[]> {
+    return this.api.get<readonly CategoryCount[]>('/categories');
   }
 }

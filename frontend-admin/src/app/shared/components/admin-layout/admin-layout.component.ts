@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -30,6 +31,7 @@ const NAV_ITEMS: readonly NavItem[] = [
 export class AdminLayoutComponent implements OnInit {
   private readonly oidc = inject(OidcSecurityService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly isAuthenticated = signal(false);
   readonly userName = signal('');
@@ -38,16 +40,16 @@ export class AdminLayoutComponent implements OnInit {
   readonly navItems = NAV_ITEMS;
 
   ngOnInit(): void {
-    combineLatest([this.oidc.isAuthenticated$, this.oidc.userData$]).subscribe(
-      ([{ isAuthenticated }, { userData }]) => {
+    combineLatest([this.oidc.isAuthenticated$, this.oidc.userData$])
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(([{ isAuthenticated }, { userData }]) => {
         this.isAuthenticated.set(isAuthenticated);
         if (userData) {
           this.userName.set((userData['name'] as string) || (userData['preferred_username'] as string) || '');
           const roles = getAdminRoles(userData);
           this.isAdmin.set(roles.includes('ADMIN'));
         }
-      }
-    );
+      });
   }
 
   visibleNav(): readonly NavItem[] {

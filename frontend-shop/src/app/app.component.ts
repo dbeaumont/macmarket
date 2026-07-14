@@ -14,7 +14,7 @@ import { ChatWidgetComponent } from './features/chat/chat-widget.component';
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App implements OnInit {
+export class AppComponent implements OnInit {
   private readonly oidc = inject(OidcSecurityService);
   private readonly cartService = inject(CartService);
 

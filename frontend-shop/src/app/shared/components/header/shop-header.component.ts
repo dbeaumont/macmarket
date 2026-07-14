@@ -1,4 +1,5 @@
-import { Component, inject, signal, computed, OnInit } from '@angular/core';
+import { Component, DestroyRef, inject, signal, computed, OnInit } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { OidcSecurityService } from 'angular-auth-oidc-client';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,6 +17,7 @@ export class ShopHeaderComponent implements OnInit {
   private readonly oidc = inject(OidcSecurityService);
   private readonly cartService = inject(CartService);
   private readonly cartDrawerService = inject(CartDrawerService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly isAuthenticated = signal(false);
   readonly userName = signal<string>('');
@@ -23,10 +25,10 @@ export class ShopHeaderComponent implements OnInit {
   readonly itemCount = this.cartService.itemCount;
 
   ngOnInit(): void {
-    this.oidc.isAuthenticated$.subscribe(({ isAuthenticated }) => {
+    this.oidc.isAuthenticated$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ isAuthenticated }) => {
       this.isAuthenticated.set(isAuthenticated);
     });
-    this.oidc.userData$.subscribe(({ userData }) => {
+    this.oidc.userData$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(({ userData }) => {
       if (userData) {
         this.userName.set((userData['name'] as string) || (userData['preferred_username'] as string) || '');
       }
