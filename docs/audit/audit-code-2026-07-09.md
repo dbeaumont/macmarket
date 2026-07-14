@@ -1,5 +1,7 @@
 # Revue de code — MacMarket
 
+> **Note** : cet audit est un instantané historique daté, réalisé **avant** la migration des frontends de React vers Angular (voir [ADR-0006](../adr/ADR-0006-angular-frontends.md)). Les sections « Frontend Shop » et « Frontend Admin » ci-dessous décrivent l'ancien code React et ne reflètent plus l'état actuel du dépôt ; seule la section backend reste directement applicable.
+
 **Date de revue** : 2026-07-09
 
 **Périmètre analysé** :
