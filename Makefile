@@ -35,12 +35,7 @@ up: init ## Lancer toute la stack (7 services)
 	$(COMPOSE) up -d
 	@echo ""
 	@echo "✅ Stack demarree"
-	@echo "   Boutique :   http://localhost:$(or $(FRONTEND_SHOP_PORT),3000)"
-	@echo "   Backoffice : http://localhost:$(or $(FRONTEND_ADMIN_PORT),3001)"
-	@echo "   Backend :    http://localhost:$(or $(BACKEND_PORT),8080)"
-	@echo "   Keycloak :   http://localhost:$(or $(KEYCLOAK_HTTP_PORT),8180)"
-	@echo "   Mailpit :    http://localhost:$(or $(MAILPIT_UI_PORT),8025)"
-	@echo "   Ollama :     http://localhost:11434"
+	@$(MAKE) urls
 
 down: ## Arreter toute la stack
 	$(COMPOSE) down
