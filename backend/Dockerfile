@@ -17,7 +17,8 @@ COPY mvnw .
 # 2. Importer le certificat CA du miroir dans le truststore Java (keytool) ET le store système Alpine (wget is used by mvnw to download the wrapper JAR)
 # 3. Rediriger wrapperUrl/distributionUrl vers le miroir interne (repo1.maven.org inaccessible en entreprise)
 # 4. Pré-télécharger toutes les dépendances Maven (go-offline) → couche cachée
-RUN apk add --no-cache openssl ca-certificates \
+RUN --mount=type=secret,id=artifactory_token  \
+    apk add --no-cache openssl ca-certificates \
     && MIRROR_HOST=$(echo "${MAVEN_MIRROR_URL}" | sed 's|^https://||' | cut -d'/' -f1) \
     && openssl s_client -connect "${MIRROR_HOST}" -showcerts </dev/null 2>/dev/null \
        | awk '/-----BEGIN CERTIFICATE-----/{n++; f="/tmp/ca-"n".crt"} f{print > f} /-----END CERTIFICATE-----/{f=""}' \
@@ -34,6 +35,7 @@ RUN apk add --no-cache openssl ca-certificates \
     && chmod +x mvnw \
     && sed -i "s|https://repo1.maven.org/maven2|${MAVEN_MIRROR_URL}|g" .mvn/wrapper/maven-wrapper.properties \
     && sed -i "s|\${env.MAVEN_MIRROR_URL}|${MAVEN_MIRROR_URL}|" .mvn/settings.xml \
+    && export ARTIFACTORY_TOKEN=$(cat /run/secrets/artifactory_token) \
     && ./mvnw dependency:go-offline -B -s .mvn/settings.xml
 
 # Copier les sources après le go-offline pour que cette couche soit invalidée
@@ -41,7 +43,7 @@ RUN apk add --no-cache openssl ca-certificates \
 COPY src ./src
 
 # Compiler et packager le JAR (tests ignorés — ils sont exécutés en CI séparément)
-RUN ./mvnw package -DskipTests -B -s .mvn/settings.xml
+RUN ./mvnw package -DskipTests -Pprod -B -s .mvn/settings.xml
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Étape 2 — Runtime : image finale allégée avec JRE uniquement (pas de JDK)
