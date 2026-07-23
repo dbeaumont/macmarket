@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-
 # ─────────────────────────────────────────────────────────────────────────────
 # Étape 1 — Build : compilation Vite/React avec Node 22 (Alpine)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -19,7 +17,7 @@ COPY package.json package-lock.json .npmrc ./
 
 # Installer les dépendances via npm ci (installation déterministe depuis le lockfile)
 # Le token npm est injecté via un secret BuildKit (jamais stocké dans l'image)
-RUN --mount=type=secret,id=npm_token,env=NPM_TOKEN npm ci --loglevel=info
+RUN --mount=type=secret,id=artifactory_token,env=ARTIFACTORY_TOKEN npm ci --loglevel=info
 
 # Copier les sources et construire les assets statiques optimisés (Vite)
 COPY . .

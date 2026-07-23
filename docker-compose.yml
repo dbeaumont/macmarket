@@ -142,7 +142,7 @@ services:
         NPM_REGISTRY_URL: ${NPM_REGISTRY_URL}
         NPM_REGISTRY_HOST: ${NPM_REGISTRY_HOST}
       secrets:
-        - npm_token
+        - artifactory_token
     container_name: macmarket-frontend-shop
     ports:
       - "${FRONTEND_SHOP_PORT}:80"
@@ -166,7 +166,7 @@ services:
         NPM_REGISTRY_URL: ${NPM_REGISTRY_URL}
         NPM_REGISTRY_HOST: ${NPM_REGISTRY_HOST}
       secrets:
-        - npm_token
+        - artifactory_token
     container_name: macmarket-frontend-admin
     ports:
       - "${FRONTEND_ADMIN_PORT}:80"
@@ -190,5 +190,5 @@ networks:
     driver: bridge
 
 secrets:
-  npm_token:
-    environment: NPM_TOKEN
+  artifactory_token:
+    environment: ARTIFACTORY_TOKEN
